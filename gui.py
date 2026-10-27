@@ -131,26 +131,41 @@ class MainWindow(QMainWindow):
 
         self.queue = QTableWidget(0, 3)
         self.queue.setHorizontalHeaderLabels(["File", "Folder", "Category?"])
-        # Vertical-first: File se queda con el ancho, Folder legible, Category fija y corta
-        from PySide6.QtWidgets import QHeaderView as _HV
+        # Two columns: queue left (tall), tools right. File stretches inside left panel.
+        from PySide6.QtWidgets import QHeaderView as _HV, QSplitter as _SPLIT, QGroupBox as _GB
         _hh = self.queue.horizontalHeader()
         _hh.setStretchLastSection(False)
         _hh.setSectionResizeMode(0, _HV.Stretch)
         _hh.setSectionResizeMode(1, _HV.Interactive)
         _hh.setSectionResizeMode(2, _HV.Fixed)
-        self.queue.setColumnWidth(1, 320)
-        self.queue.setColumnWidth(2, 130)
-        self.queue.setMinimumHeight(220)
+        self.queue.setColumnWidth(1, 220)
+        self.queue.setColumnWidth(2, 110)
         self.queue.verticalHeader().setDefaultSectionSize(26)
         self.queue.setSelectionBehavior(self.queue.SelectionBehavior.SelectRows)
         self.queue.setTextElideMode(Qt.ElideRight)
-        lay.addWidget(self.queue, 1)
+        self.queue.setMinimumWidth(360)
+
+        left = QWidget()
+        leftLay = QVBoxLayout(left)
+        leftLay.setContentsMargins(0, 0, 0, 0)
+        gbFiles = _GB("FILES — drag & drop here")
+        gbLay = QVBoxLayout(gbFiles)
+        gbLay.addWidget(self.queue)
+        leftLay.addWidget(gbFiles)
 
         self.tabs = QTabWidget()
-        lay.addWidget(self.tabs, 2)
         self.tabs.addTab(self._org_tab(), "1 · ORGANIZER rename")
         self.tabs.addTab(self._conv_tab(), "2 · CONVERTER SP-404")
         self.tabs.addTab(self._norm_tab(), "3 · NORMALIZER peak")
+
+        split = _SPLIT(Qt.Horizontal)
+        split.addWidget(left)
+        split.addWidget(self.tabs)
+        split.setStretchFactor(0, 1)
+        split.setStretchFactor(1, 2)
+        split.setSizes([420, 660])
+        split.setChildrenCollapsible(False)
+        lay.addWidget(split, 1)
 
         self.lblFooter = QLabel("SHARDBEATS TRAKK SUITE · portable · offline · v1.0")
         self.lblFooter.setObjectName("footerLabel")
