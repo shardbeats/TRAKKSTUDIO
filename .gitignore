@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+dist/
+build/
+*.spec
+demo_*/
+out_test/
+*_sp/
+*_N/
+*_trakk/
+process_report_*.csv
+rename_log.csv
+library.db
