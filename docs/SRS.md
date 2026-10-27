@@ -1,9 +1,9 @@
 # TRAKKSTUDIO — SRS v1.0 (Software Requirements Specification)
 
-**Estado:** Borrador para congelar v1
-**Fecha:** 2026-10-27
+**Estado:** CONGELADO v1.0 — aprobado por owner 2026-10-27 (chat)
+**Fecha freeze:** 2026-10-27
 **Autor:** Ing. Senior + ShardBeats (owner)
-**Repo:** `D:\Proyectos programacion\TRAKKSTUDIO`
+**Repo:** `D:\Proyectos programacion\TRAKKSTUDIO` → https://github.com/shardbeats/TRAKKSTUDIO
 **Stack congelado:** Python 3.10+ + PySide6 + SQLite (stdlib) + FFmpeg local + PyInstaller portable .exe
 
 ---
@@ -108,12 +108,11 @@ Convención: cada FR tiene `Input / Behavior / Output / Error path`. Todo `must`
 - Error: nombre resultante >180 chars o vacío -> bloquea fila + explica.
 - Verificación: AC-4. Ejemplo crítico owner: `snare_03.wav` + suffix `@dario` MUST dar `snare_03_@dario.wav`, NO `snare@dario03.wav`.
 
-**FR-5 Clasificación asistida por nombre (sin IA)**
+**FR-5 [DEGRADADO v1 — solo hint pasivo, sin auto-move] Clasificación por keyword (sin IA)**
 - Input: archivo inventariado.
-- Behavior: MUST inferir categoría por diccionario keyword (ej: `kick,808,snare,clap,hat,openhat,perc,rim,shaker,crash,loop,melody,bass,vox,fx,riser` en filename o parent folder) a carpeta destino sugerida del preset activo. MUST permitir override manual por fila y `Aplicar sugerencias` bulk. NO mueve nada sin confirmación.
-- Output: columna `Categoría sugerida + confianza (keyword match)`.
-- Error: sin match -> `Unsorted/`, no falla.
-- Verificación: AC-5.
+- Behavior v1: `guess_category()` keyword en filename + parent folder SOLO alimenta la columna informativa `Category?` del queue. NO hay `Aplicar sugerencias` bulk, NO mueve archivos, NO bloquea nada. Sin match -> `Unsorted` (cola de revisión manual).
+- Prohibido v1: detección por contenido audio, score de confianza, auto-clasificación en carpetas (ver Backlog).
+- Verificación: AC-5 (solo display, ver §6).
 
 ### MÓDULO C — TOOL CONVERTER independiente (hereda 100% TRAKKCONVERTER)
 
@@ -174,11 +173,14 @@ Convención: cada FR tiene `Input / Behavior / Output / Error path`. Todo `must`
 
 ---
 
-## 5. UX Scope — Multitool con 3 Tabs independientes + 1 barra común
+## 5. UX Scope — Multitool 2 columnas (files izq + tools der) + brand ámbar
 
-**Layout v1 (QTabWidget):**
-- **Top bar común (siempre visible):** drag&drop zone + Add Folder / Clear + indicador Admin-warning + contador `X files`.
-- **Tab 1 ORGANIZER:** preset estructura (FR-3) + Create, tabla preview `Antes -> Después` rename (FR-4), inputs prefix/suffix/replace/numerate, categoría sugerida (FR-5), su propio output+mode (FR-8) + botón `APPLY RENAME` + `process_report_organizer.csv`.
+**Layout v1 congelado (QSplitter horizontal, owner 27-oct-2026):**
+- **Header brand:** `TRAKKSTUDIO` 19px bold + subtítulo ámbar `SHARDBEATS TRAKK SUITE — ORGANIZE / CONVERT / NORMALIZE` + footer gris.
+- **Top bar común:** Add folder (Ctrl+O) / Add files / Clear (Del) + contador `X files / Y packs / Z GB` + warning admin (sin drag&drop).
+- **Izquierda (tall):** grupo `FILES` con tabla `File (stretch) | Folder (220px) | Category? hint pasivo FR-5 (110px)`, tooltips con path completo, selección por filas.
+- **Derecha (2x ancho):** tabs independientes:
+- **Tab 1 ORGANIZER:** preset único `sp404_splice` + Create, inputs verticales Prefix/Suffix/Old/New a ancho completo, checks `Whole name (=New)` + `Numerate`, `Copy to output` default OFF (= in-place rename), tabla preview `Before/After (stretch) | Error (220px)` + `APPLY RENAME` ámbar + `process_report_organizer.csv`.
 - **Tab 2 CONVERTER:** sample_rate dropdown (48k/44.1k), Force-to-rate toggle, keep-mono toggle, columna `copy/convert/skip` (FR-2), su propio output+mode + `START CONVERT`/`Cancel` + progress + `process_report_converter.csv`.
 - **Tab 3 NORMALIZER:** target peak (-1.0), tolerance (0.5), replace-original toggle (solo next-to-source, herencia), su propio output+mode + `START NORMALIZE`/`Cancel` + progress + `process_report_normalizer.csv`.
 
@@ -201,7 +203,7 @@ NO hay botón START global. NO hay wizard que obligue a pasar por los 3.
 - **AC-2 (FR-2):** Archivo `x_sp.wav` a 48k stereo MUST marcar `skip`. `y_44k.wav` con target 48k + Force ON MUST marcar `convert`. Test `test_classifier_rules`.
 - **AC-3 (FR-3):** Preset único `sp404_splice` en carpeta vacía MUST crear 16 paths exactos (Kicks, 808s_Bass, FX_Textures, Favorites, Oneshots/Drums, Loops/BPM_120, Artwork, MIDI...). `pytest tests/test_organizer.py -q` green + `dir /s` manual.
 - **AC-4 (FR-4):** Seleccionar 3 files + suffix `@dario` -> preview muestra `*_@dario.wav`, sin colisión, Apply genera files + `rename_log.csv` con 3 líneas. Test `test_bulk_suffix_append`.
-- **AC-5 (FR-5):** `808_glide_C.wav` sugiere `808s_Bass`, `snare_trap_02.wav` sugiere `Snares_Claps`. Test `test_guess_category`.
+- **AC-5 (FR-5 degradado):** `808_glide_C.wav` muestra `808s_Bass` y `mystery_xyz.wav` muestra `Unsorted` en columna informativa. No mueve nada. Test `test_guess_category`.
 - **AC-6 (FR-6):** Convertir tono `mp3 44.1k` -> output `_sp.wav` y `ffprobe -show_streams` MUST dar `sample_rate=48000, channels=2, codec_name=pcm_s16le`. Test e2e `test_convert_tone`.
 - **AC-7 (FR-7):** Tono -6dB peak + target -1dB -> output `_N.wav` con `max_volume ≈ -1.0 ±0.3dB` medido con volumedetect. Tono ya en -1.0 ±0.5 MUST skip. Test `test_normalize_gain`.
 - **AC-8 (FR-8):** Sin output folder + Preserve ON MUST crear `<source>_trakk/` espejo. Con output + Preserve OFF MUST aplanar sin duplicados. Overwrite mode MUST pedir confirm + solo borrar tras ffprobe ok. Test `test_output_resolver`.
@@ -221,22 +223,27 @@ NO hay botón START global. NO hay wizard que obligue a pasar por los 3.
 
 ---
 
-## 8. Decisiones congeladas para v1
+## 8. Decisiones congeladas para v1 (freeze 2026-10-27)
 
 1. Nombre: **TRAKKSTUDIO multitool (3 tabs independientes)**.
 2. Sufijos heritage se mantienen por tool: `_sp` solo Converter, `_N` solo Normalizer, `_@tag` solo Organizer append. Solo si el usuario encadena manualmente se combinan ej: `Kick_01_@dario_sp_N.wav`.
-3. Default seguro por tab: `Mode=Copy`, `Preserve=ON`, Converter `Force to rate=ON`, `48kHz/16-bit/stereo`, Normalizer `Target -1.0dB / Tol 0.5dB`.
-4. In-place solo con confirm explícita + verificación ffprobe, por tab.
-5. Estructura base creada desde app, no se asume estructura entrante.
-6. No hay START global. Cada tab tiene su START/Cancel y su CSV.
+3. Defaults por tab: Organizer `in-place` (Copy OFF); Converter/Normalizer `Mode=Copy`, `Preserve=ON`, Converter `Force to rate=ON`, `48kHz/16-bit/stereo`, Normalizer `Target -1.0dB / Tol 0.5dB`.
+4. In-place rename directo (sin confirm extra); overwrite convert/normalize solo tras ffprobe OK.
+5. Preset único `sp404_splice` (16 paths, fusión SP-404 + Splice). Resto de presets eliminados.
+6. FR-5 degradado a hint pasivo. Sin detección por contenido en v1.
+7. Layout 2 columnas (files izq + tools der) con splitter + brand ámbar `#F5A623` heritage. Sin iconos en v1.
+8. No hay START global. Cada tab tiene su START/Cancel y su CSV.
 
-## 9. Backlog (no hacer ahora)
+## 9. Backlog (no hacer en v1)
 
+- FR-5 v2: dict ampliado + duración + confianza + auto-move (solo si owner lo re-pide).
+- Detección por contenido espectral FFmpeg opt-in (lowpass/highpass ratio).
 - Deduplicación por hash audio (solo sha parcial en v1).
 - Packs ZIP in/out.
 - Favoritos hybrid auto-copy.
 - Soporte MPC 8-char naming.
 - Firma código para evitar flag antivirus.
+- Icono `icon.ico/png` + `make_icon.py` (diseño aprobado: waveform 3 grupos ámbar).
 
 ---
-**Firma owner para congelar:** _________________ Fecha: _______
+**Freeze v1:** Aprobado por owner en chat 2026-10-27. Cambios posteriores van a v1.1 con CHANGELOG.
