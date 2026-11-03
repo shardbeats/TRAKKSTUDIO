@@ -1,8 +1,9 @@
 # CHANGELOG — TRAKKSTUDIO
 
-## [Unreleased] (build 2 — en validación, sin push)
+## [v1.0] — 2026-11-02 (build 2 + installer, tag v1.0)
 
 ### Added
+- Installer `installer/trakkstudio.iss` (Inno Setup 6, per-user sin admin, EN/ES) + `build_installer.py` (`STABLE_VERSION` debe igualar el footer de `gui.py`) → `dist/TRAKKSTUDIO-Setup-1.0.exe` (210MB). Smoke verde: install silencioso, scan CLI del exe instalado, GUI offscreen, uninstall silencioso.
 - `resource_path()` helper (`_MEIPASS` primero): QSS e icono resuelven dentro del exe.
 - Columna Folder compacta (`pack/sub`, tooltip con ruta completa), header de filas oculto, panel FILES mínimo 400px, splitter 470/610.
 
@@ -16,7 +17,7 @@
 ### Removed
 - Sidecars junto a los samples: `rename_log.csv` y `process_report_*.csv` ya no se escriben (carpetas del user siempre limpias). Resumen solo en panel UI + `library.db`. Sin esto no hay undo vía CSV.
 
-## [v1.0] — 2026-10-27 (freeze SRS, GUI 2 columnas)
+## [v1.0-freeze] — 2026-10-27 (freeze SRS, GUI 2 columnas)
 
 ### Added
 - Multitool 3 tabs independientes (Organizer / Converter SP-404 / Normalizer peak) + shared scan SQLite.

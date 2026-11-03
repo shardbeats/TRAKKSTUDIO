@@ -16,6 +16,7 @@
 ## Requirements
 
 - Windows 10/11 64-bit, ~300MB libres + espacio para copias (`input×1.8 + 100MB`, la app lo chequea antes del START).
+- Para instalar: ejecuta `TRAKKSTUDIO-Setup-1.0.exe` (per-user, sin admin, con desinstalador).
 - Para correr desde fuente: Python 3.10+ y FFmpeg en PATH (`ffmpeg -version`).
 - Para usar el portable: nada (el `.exe` trae Qt + FFmpeg bundlados, v1.0 real: 210MB con FFmpeg full build; con essentials baja a ~120MB). Algunos antivirus marcan los one-file de PyInstaller como falso positivo.
 
@@ -80,6 +81,7 @@ TRAKKSTUDIO/
 | Drag&drop no entra (cursor prohibido) | Corres como Admin: reabre normal |
 | `ffmpeg not found` (desde fuente) | Instala FFmpeg y agrégalo al PATH; el `.exe` no lo necesita |
 | Falso positivo antivirus en el `.exe` | Normal en PyInstaller one-file; compila tú mismo con `python build_exe.py` |
+| SmartScreen "editor desconocido" | Build sin firmar: Más info → Ejecutar de todas formas |
 | Sin espacio | Libera `input×1.8 + 100MB`; el START lo bloquea antes de escribir |
 | Exe se ve blanco/nativo | Build vieja sin QSS: usa build2+ (QSS via `--add-data`, ver CHANGELOG) |
 

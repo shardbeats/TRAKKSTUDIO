@@ -15,6 +15,14 @@
 
 Sale en `dist/TRAKKSTUDIO.exe` (v1.0 real: 210MB con FFmpeg 9 full build + Qt6; con build essentials ~120MB) con ffmpeg/ffprobe bundlados vía `--add-binary`. Sin `icon.ico` usa el default de PyInstaller. Documenta tamaño real + nota falso-positivo antivirus en el release.
 
+## Installer (Inno Setup 6)
+
+```
+python build_installer.py
+```
+
+Necesita `dist/TRAKKSTUDIO.exe` ya construido. Sale en `dist/TRAKKSTUDIO-Setup-<version>.exe` (per-user, sin admin, EN/ES, con desinstalador). Versión en `build_installer.py: STABLE_VERSION` (debe igualar el footer de `gui.py`). Build sin firmar: SmartScreen avisará en el primer run.
+
 ## Datos locales / backup
 
 - DB: `%APPDATA%/TRAKKSTUDIO/library.db` (borrable, se regenera con scan).
