@@ -223,8 +223,8 @@ NO global START button. NO wizard forcing all 3 steps.
 - **[DONE] Preview:** ffplay audio preview (double-click/Play/Stop, auto-cut on select) + stale-finished guard.
 - **[DONE] Safety:** APPLY confirm with count.
 - **[DONE] English-only:** code + docs in English for international users.
-- **[TODO] MVP v1.0:** real 500-file USB pack test with no loss or sidecars → tag + release.
-- **Backlog v1.1+:** `%APPDATA%` optional report, undo rename, keep-mono toggle, 24-bit toggle, LUFS mode, Splice ZIP export with artwork, BPM/key detection, FR-5 v2.
+- **[DONE] MVP v1.0:** full pass on a second PC (Win10 Pro, owner) with no loss or sidecars. Remaining: publish the GitHub Release.
+- **Backlog v1.1+:** `%APPDATA%` optional report, keep-mono toggle, 24-bit toggle, LUFS mode, Splice ZIP export with artwork, BPM/key detection, FR-5 v2.
 
 ---
 
