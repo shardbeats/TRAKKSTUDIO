@@ -1,5 +1,21 @@
 # CHANGELOG — TRAKKSTUDIO
 
+## [Unreleased] (build 2 — en validación, sin push)
+
+### Added
+- `resource_path()` helper (`_MEIPASS` primero): QSS e icono resuelven dentro del exe.
+- Columna Folder compacta (`pack/sub`, tooltip con ruta completa), header de filas oculto, panel FILES mínimo 400px, splitter 470/610.
+
+### Changed
+- Placeholder suffix: `@dario` → `@producer` (GUI, tests, SRS).
+
+### Fixed
+- Exe mostraba tema nativo claro: `styles.qss` ahora viaja con `--add-data` (antes solo `--add-binary` de ffmpeg). Regla añadida a los skills.
+- Columna File truncada (`N...`): Folder ocupaba 220px fijos con rutas absolutas.
+
+### Removed
+- Sidecars junto a los samples: `rename_log.csv` y `process_report_*.csv` ya no se escriben (carpetas del user siempre limpias). Resumen solo en panel UI + `library.db`. Sin esto no hay undo vía CSV.
+
 ## [v1.0] — 2026-10-27 (freeze SRS, GUI 2 columnas)
 
 ### Added

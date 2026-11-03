@@ -39,8 +39,8 @@ def test_replace_whole_uses_new_fully(tmp_path):
 
 def test_owner_suffix_append_keeps_stem(tmp_path):
     f = _f(tmp_path)
-    (p,) = preview_rename([f], suffix_tag="@dario")
-    assert p.dst_name == "snare_03_@dario.wav"
+    (p,) = preview_rename([f], suffix_tag="@producer")
+    assert p.dst_name == "snare_03_@producer.wav"
     assert p.error == ""
 
 
@@ -52,8 +52,8 @@ def test_suffix_spaces_become_underscore(tmp_path):
 
 def test_prefix_plus_suffix(tmp_path):
     f = _f(tmp_path, "hat.wav")
-    (p,) = preview_rename([f], prefix="PACK", suffix_tag="@dario")
-    assert p.dst_name == "PACK_hat_@dario.wav"
+    (p,) = preview_rename([f], prefix="PACK", suffix_tag="@producer")
+    assert p.dst_name == "PACK_hat_@producer.wav"
 
 
 def test_replace_case_insensitive(tmp_path):
@@ -85,23 +85,23 @@ def test_illegal_chars_cleaned(tmp_path):
     assert "<" not in p.dst_name and ":" not in p.dst_name
 
 
-def test_apply_inplace_renames_and_logs(tmp_path):
+def test_apply_inplace_renames_without_sidecars(tmp_path):
     f = _f(tmp_path)
-    pairs = preview_rename([f], suffix_tag="@dario")
-    done, errs = apply_rename(pairs, mode="inplace", log_csv=tmp_path / "rename_log.csv")
+    pairs = preview_rename([f], suffix_tag="@producer")
+    done, errs = apply_rename(pairs, mode="inplace")
     assert done == 1 and errs == []
-    assert (tmp_path / "snare_03_@dario.wav").exists()
-    assert (tmp_path / "rename_log.csv").exists()
+    assert (tmp_path / "snare_03_@producer.wav").exists()
+    assert list(tmp_path.glob("*.csv")) == []
 
 
 def test_apply_copy_keeps_original(tmp_path):
     f = _f(tmp_path)
     out = tmp_path / "out"
-    pairs = preview_rename([f], suffix_tag="@dario")
+    pairs = preview_rename([f], suffix_tag="@producer")
     done, errs = apply_rename(pairs, mode="copy", output_dir=out)
     assert done == 1 and errs == []
     assert f.exists()
-    assert (out / "snare_03_@dario.wav").exists()
+    assert (out / "snare_03_@producer.wav").exists()
 
 
 def test_apply_blocked_on_error_writes_nothing(tmp_path):

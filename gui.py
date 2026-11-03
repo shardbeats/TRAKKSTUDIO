@@ -1,12 +1,10 @@
 """TRAKKSTUDIO GUI — multitool 3 tabs independientes + top bar comun (PySide6)."""
 from __future__ import annotations
 
-import csv
 import ctypes
 import shutil
 import sys
 import time
-from datetime import datetime
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QThread, Signal
@@ -24,6 +22,24 @@ from organizer import (
     preview_rename, scan_to_rows,
 )
 from db import upsert_files
+
+
+def resource_path(name: str) -> Path:
+    """File next to source OR bundled in PyInstaller one-file (_MEIPASS)."""
+    base = getattr(sys, "_MEIPASS", None)
+    if base:
+        p = Path(base) / name
+        if p.exists():
+            return p
+    return Path(__file__).with_name(name)
+
+
+def short_folder(path: Path) -> str:
+    """Last 2 folder parts for narrow panels (full path stays in tooltip)."""
+    parts = path.parent.parts
+    if len(parts) >= 2:
+        return f"{parts[-2]}/{parts[-1]}"
+    return str(path.parent)
 
 
 def is_admin() -> bool:
@@ -78,16 +94,6 @@ class BatchThread(QThread):
         self.done.emit({"ok": ok, "fail": fail, "skip": skip, "rows": rows})
 
 
-def write_report(path: Path, rows: list[tuple[str, str, str]]):
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w", newline="", encoding="utf-8") as fh:
-        w = csv.writer(fh)
-        w.writerow(["timestamp", "input", "output", "status"])
-        ts = datetime.now().isoformat(timespec="seconds")
-        for a, b, c in rows:
-            w.writerow([ts, a, b, c])
-
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -138,12 +144,12 @@ class MainWindow(QMainWindow):
         _hh.setSectionResizeMode(0, _HV.Stretch)
         _hh.setSectionResizeMode(1, _HV.Interactive)
         _hh.setSectionResizeMode(2, _HV.Fixed)
-        self.queue.setColumnWidth(1, 220)
-        self.queue.setColumnWidth(2, 110)
-        self.queue.verticalHeader().setDefaultSectionSize(26)
+        self.queue.setColumnWidth(1, 160)
+        self.queue.setColumnWidth(2, 100)
+        self.queue.verticalHeader().setVisible(False)
         self.queue.setSelectionBehavior(self.queue.SelectionBehavior.SelectRows)
         self.queue.setTextElideMode(Qt.ElideRight)
-        self.queue.setMinimumWidth(360)
+        self.queue.setMinimumWidth(400)
 
         left = QWidget()
         leftLay = QVBoxLayout(left)
@@ -162,8 +168,8 @@ class MainWindow(QMainWindow):
         split.addWidget(left)
         split.addWidget(self.tabs)
         split.setStretchFactor(0, 1)
-        split.setStretchFactor(1, 2)
-        split.setSizes([420, 660])
+        split.setStretchFactor(1, 1)
+        split.setSizes([470, 610])
         split.setChildrenCollapsible(False)
         lay.addWidget(split, 1)
 
@@ -173,7 +179,7 @@ class MainWindow(QMainWindow):
 
         try:
             from PySide6.QtGui import QIcon
-            ico = Path(__file__).with_name("icon.ico")
+            ico = resource_path("icon.ico")
             if ico.exists():
                 self.setWindowIcon(QIcon(str(ico)))
         except Exception:
@@ -236,7 +242,7 @@ class MainWindow(QMainWindow):
             groups[str(f.parent)] = groups.get(str(f.parent), 0) + 1
             it0 = QTableWidgetItem(f.name)
             it0.setToolTip(str(f))
-            it1 = QTableWidgetItem(str(f.parent))
+            it1 = QTableWidgetItem(short_folder(f))
             it1.setToolTip(str(f.parent))
             self.queue.setItem(i, 0, it0)
             self.queue.setItem(i, 1, it1)
@@ -287,7 +293,7 @@ class MainWindow(QMainWindow):
         self.edPrefix = QLineEdit()
         self.edPrefix.setPlaceholderText("prefix (ej PACK)")
         self.edSuffix = QLineEdit()
-        self.edSuffix.setPlaceholderText("suffix tag (ej @dario) — se concatena sin tocar base")
+        self.edSuffix.setPlaceholderText("suffix tag (ej @producer) — se concatena sin tocar base")
         self.edOld = QLineEdit(); self.edOld.setPlaceholderText("replace old")
         self.edNew = QLineEdit(); self.edNew.setPlaceholderText("replace new")
         for label, field in (("Prefix:", self.edPrefix), ("Suffix:", self.edSuffix),
@@ -411,15 +417,12 @@ class MainWindow(QMainWindow):
         if mode == "copy" and out is None:
             QMessageBox.warning(self, "Need output", "Copy mode needs an output folder.")
             return
-        done, errs = apply_rename(self._pairs, mode=mode, output_dir=out,
-                                  log_csv=Path(out or self._pairs[0].src.parent) / "rename_log.csv")
-        write_report(Path(out or self._pairs[0].src.parent) / "process_report_organizer.csv",
-                     [(str(p.src), p.dst_name, "done") for p in self._pairs] if not errs else [])
+        done, errs = apply_rename(self._pairs, mode=mode, output_dir=out)
         self.lblOrg.setText(f"done {done}, errors {len(errs)}")
         if errs:
             QMessageBox.critical(self, "Errors", "\n".join(errs[:10]))
         else:
-            QMessageBox.information(self, "OK", f"Renamed {done} files. Log rename_log.csv written.")
+            QMessageBox.information(self, "OK", f"Renamed {done} files.")
             if mode == "inplace":
                 self.files = [f.parent / p.dst_name for f, p in zip([p.src for p in self._pairs], self._pairs)]
                 self.refresh_queue()
@@ -523,7 +526,7 @@ class MainWindow(QMainWindow):
                     return str(r.output_path), "done", f"converted but keep orig: {e}"
             return str(r.output_path), "done", ""
 
-        self.run_batch(files, job, self.barConv, self.logConv, "process_report_converter.csv", out_text)
+        self.run_batch(files, job, self.barConv, self.logConv)
 
     # ---- TAB 3 normalizer ----
     def _norm_tab(self):
@@ -595,10 +598,10 @@ class MainWindow(QMainWindow):
                 return "", "failed", r.error or ""
             return str(r.output_path), "done", f"gain {r.gain_db:+.1f}dB"
 
-        self.run_batch(files, job, self.barNorm, self.logNorm, "process_report_normalizer.csv", out_text)
+        self.run_batch(files, job, self.barNorm, self.logNorm)
 
-    # ---- runner ----
-    def run_batch(self, files, job, bar, log, report_name, out_text):
+    # ---- runner (summary stays in the UI log panel — no sidecar files) ----
+    def run_batch(self, files, job, bar, log):
         if self.thread and self.thread.isRunning():
             QMessageBox.warning(self, "Busy", "Wait or Cancel current batch.")
             return
@@ -608,12 +611,7 @@ class MainWindow(QMainWindow):
         self.thread = BatchThread(files, job, self)
         self.thread.prog.connect(lambda i, n, s: (bar.setValue(i), log.append(f"[{i}/{n}] {Path(s).name}")))
         def fin(summary):
-            dest = Path(out_text) if out_text else (Path(files[0].parent) if files else Path("."))
-            try:
-                write_report(dest / report_name, summary["rows"])
-            except Exception as e:
-                log.append(f"report err: {e}")
-            log.append(f"DONE ok={summary['ok']} skip={summary['skip']} fail={summary['fail']} in {time.time()-t0:.1f}s → {report_name}")
+            log.append(f"DONE ok={summary['ok']} skip={summary['skip']} fail={summary['fail']} in {time.time()-t0:.1f}s")
             QMessageBox.information(self, "Batch done", f"ok={summary['ok']} skip={summary['skip']} fail={summary['fail']}")
         self.thread.done.connect(fin)
         self.thread.start()
@@ -625,7 +623,7 @@ class MainWindow(QMainWindow):
 
 def run():
     app = QApplication(sys.argv)
-    qss = Path(__file__).with_name("styles.qss")
+    qss = resource_path("styles.qss")
     if qss.exists():
         try:
             app.setStyleSheet(qss.read_text(encoding="utf-8"))

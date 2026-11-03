@@ -76,7 +76,7 @@ def test_encode_args_pcm16_kept():
 def test_rename_only_never_creates_sp_or_N(tmp_path):
     f = tmp_path / "kick.wav"
     f.write_bytes(b"x" * 128)
-    pairs = preview_rename([f], suffix_tag="@dario")
+    pairs = preview_rename([f], suffix_tag="@producer")
     done, _ = apply_rename(pairs, mode="inplace")
     assert done == 1
     names = {p.name for p in tmp_path.iterdir()}

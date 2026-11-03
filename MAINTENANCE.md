@@ -18,7 +18,7 @@ Sale en `dist/TRAKKSTUDIO.exe` (v1.0 real: 210MB con FFmpeg 9 full build + Qt6; 
 ## Datos locales / backup
 
 - DB: `%APPDATA%/TRAKKSTUDIO/library.db` (borrable, se regenera con scan).
-- Logs: `rename_log.csv` + `process_report_*.csv` junto al output (conservar 1 por release para undo manual).
+- Logs: resumen en el panel UI + `library.db`. Sin sidecars junto a los samples desde Build 2 (no hay undo vía CSV).
 - No hay keys, cuentas ni cloud: nada que rotar.
 
 ## Reglas de release

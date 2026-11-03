@@ -6,11 +6,9 @@
 """
 from __future__ import annotations
 
-import csv
 import hashlib
 import re
 from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 
 from converter import SUPPORTED_EXTENSIONS, find_audio_files  # noqa: F401 (shared discovery)
@@ -82,7 +80,7 @@ def sanitize_stem(stem: str) -> str:
 
 
 def sanitize_suffix(suffix: str) -> str:
-    # Owner case: "@dario" must survive; spaces become _.
+    # Producer tag case: "@producer" must survive; spaces become _.
     s = suffix.strip()
     s = re.sub(r"\s+", "_", s)
     for ch in WINDOWS_ILLEGAL:
@@ -161,12 +159,11 @@ def apply_rename(
     pairs: list[RenamePair],
     mode: str = "inplace",
     output_dir: Path | None = None,
-    log_csv: Path | None = None,
 ) -> tuple[int, list[str]]:
     """Apply a preview. mode=inplace renames; mode=copy copies with new name.
 
-    Returns (done_count, errors). Writes rename_log.csv when log_csv given.
-    Blocked when any pair has error.
+    No sidecar files are written (owner decision: keep user folders clean).
+    Returns (done_count, errors). Blocked when any pair has error.
     """
     errors = [f"{p.src.name}: {p.error}" for p in pairs if p.error]
     if errors:
@@ -174,7 +171,6 @@ def apply_rename(
     import shutil
 
     done = 0
-    log_rows: list[tuple[str, str]] = []
     errs: list[str] = []
     for p in pairs:
         try:
@@ -188,30 +184,15 @@ def apply_rename(
                     errs.append(f"{p.src.name}: exists {dst.name}")
                     continue
                 shutil.copy2(p.src, dst)
-                log_rows.append((str(p.src), str(dst)))
             else:
                 dst = p.src.parent / p.dst_name
                 if dst.exists() and dst.resolve() != p.src.resolve():
                     errs.append(f"{p.src.name}: exists {dst.name}")
                     continue
                 p.src.rename(dst)
-                log_rows.append((str(p.src), str(dst)))
             done += 1
         except OSError as e:
             errs.append(f"{p.src.name}: {e}")
-    if log_csv is not None and log_rows:
-        try:
-            log_csv.parent.mkdir(parents=True, exist_ok=True)
-            new = not log_csv.exists()
-            with open(log_csv, "a", newline="", encoding="utf-8") as fh:
-                w = csv.writer(fh)
-                if new:
-                    w.writerow(["timestamp", "old_path", "new_path"])
-                ts = datetime.now().isoformat(timespec="seconds")
-                for old, newp in log_rows:
-                    w.writerow([ts, old, newp])
-        except OSError as e:
-            errs.append(f"log: {e}")
     return done, errs
 
 

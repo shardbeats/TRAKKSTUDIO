@@ -1,16 +1,16 @@
 # TRAKKSTUDIO — Multitool (ShardBeats TRAKK SUITE)
 
-`Folders/files -> Organize (rename) | Convert (SP-404 WAV) | Normalize (peak) -> Mirror output + CSV report`
+`Folders/files -> Organize (rename) | Convert (SP-404 WAV) | Normalize (peak) -> Mirror output, resumen en panel`
 
-3 tools independientes en 1 ventana (files izquierda, tools derecha). Cada tab tiene su START/Cancel, output y CSV propios. Sin pipeline forzado.
+3 tools independientes en 1 ventana (files izquierda, tools derecha). Cada tab tiene su START/Cancel y su resumen propios. Sin pipeline forzado.
 
 ## Features
 
 | Tool | Qué hace | Salida |
 |---|---|---|
-| 1 · ORGANIZER rename | Crea estructura `sp404_splice` (16 carpetas), bulk rename preview Antes→Después: Clean, Replace Old→New, Whole name (=New), Prefix, Suffix `@tag` append, Numerate anti-colisión, in-place default | `rename_log.csv` + `process_report_organizer.csv` |
-| 2 · CONVERTER SP-404 | Batch a WAV SP-404MK2: 48kHz (o 44.1k legacy) / 16-bit / stereo PCM; copia si ya está a target, resamplea si Force-to-rate, skipea `*_sp.wav` | `*_sp.wav` + `process_report_converter.csv` |
-| 3 · NORMALIZER peak | Cada clip a su propio peak (linear gain, sin compresión), default -1.0dB ±0.5dB skip, preserva rate/depth, skipea `*_N.wav` y silencios | `*_N.wav` + `process_report_normalizer.csv` |
+| 1 · ORGANIZER rename | Crea estructura `sp404_splice` (16 carpetas), bulk rename preview Antes→Después: Clean, Replace Old→New, Whole name (=New), Prefix, Suffix `@tag` append, Numerate anti-colisión, in-place default. No deja archivos extra junto a tus samples | Resumen en el panel |
+| 2 · CONVERTER SP-404 | Batch a WAV SP-404MK2: 48kHz (o 44.1k legacy) / 16-bit / stereo PCM; copia si ya está a target, resamplea si Force-to-rate, skipea `*_sp.wav` | `*_sp.wav` |
+| 3 · NORMALIZER peak | Cada clip a su propio peak (linear gain, sin compresión), default -1.0dB ±0.5dB skip, preserva rate/depth, skipea `*_N.wav` y silencios | `*_N.wav` |
 | Shared | Scan drag&drop agrupado por pack, SQLite local, folder resolver Mirror/Flat/Next-to-source, check disco, Cancel que mata ffmpeg, tema ámbar `#F5A623` | `library.db` |
 
 ## Requirements
@@ -40,8 +40,8 @@ python -m venv .venv
 3. (Solo rename) Tab 1: Prefix/Suffix/Old/New + Whole/Numerate → Preview rename → revisa After → APPLY (in-place default; marca Copy solo si quieres conservar originales en otro folder).
 4. (Solo convertir) Tab 2: rate 48000, Force-to-rate ON → Preview actions (`copy/convert/skip`) → START CONVERT.
 5. (Solo normalizar) Tab 3: Target -1.0, Tol 0.5 → START NORMALIZE.
-6. Resultado esperado: `Closed Hat (8).wav` → rename `hhat_(8).wav` → convert `hhat_(8)_sp.wav` (48k/stereo) → normalize `hhat_(8)_sp_N.wav` (-1dB). Cada paso es opcional y deja su CSV.
-7. Reportes junto al output: `process_report_*.csv` + `rename_log.csv` (para undo manual).
+6. Resultado esperado: `Closed Hat (8).wav` → rename `hhat_(8).wav` → convert `hhat_(8)_sp.wav` (48k/stereo) → normalize `hhat_(8)_sp_N.wav` (-1dB). Cada paso es opcional y muestra su resumen en el panel. Tus carpetas quedan limpias: cero CSVs ni sidecars.
+7. La DB local (`%APPDATA%/TRAKKSTUDIO/library.db`) guarda el inventario; se regenera con cada scan.
 
 ## Project structure
 
@@ -81,6 +81,17 @@ TRAKKSTUDIO/
 | `ffmpeg not found` (desde fuente) | Instala FFmpeg y agrégalo al PATH; el `.exe` no lo necesita |
 | Falso positivo antivirus en el `.exe` | Normal en PyInstaller one-file; compila tú mismo con `python build_exe.py` |
 | Sin espacio | Libera `input×1.8 + 100MB`; el START lo bloquea antes de escribir |
+| Exe se ve blanco/nativo | Build vieja sin QSS: usa build2+ (QSS via `--add-data`, ver CHANGELOG) |
+
+## Roadmap (dónde vamos — 2026-10-28)
+
+- [x] **M0 Spec:** SRS v1.0 CONGELADO (`docs/SRS.md`).
+- [x] **Sprint 1 Engine:** `organizer/converter/normalizer/db` + 45 pytest verdes.
+- [x] **Sprint 2 GUI:** 2 columnas, tema ámbar heritage, rename in-place + Whole name.
+- [x] **Build 1:** `dist/TRAKKSTUDIO.exe` 210MB portable (ffmpeg+ffprobe).
+- [x] **Build 2:** QSS dentro del exe (`--add-data` + `resource_path()`), columnas legibles (`pack/sub`), cero CSVs, placeholder `@producer`. Pusheado + tag `v1.0`.
+- [ ] **MVP done:** USB test 500 files sin pérdida ni sidecars en otro PC → release.
+- [ ] **Backlog v1.1+:** reporte opcional a `%APPDATA%`, undo rename, toggles 24-bit/keep-mono, LUFS, ZIP Splice, icono `icon.ico`, FR-5 v2.
 
 ## License
 

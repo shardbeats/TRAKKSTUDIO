@@ -103,10 +103,10 @@ Convención: cada FR tiene `Input / Behavior / Output / Error path`. Todo `must`
   5. `Numerate`: `_{001}` con inicio/padding elegible, solo si hay colisión o usuario lo pide.
 - MUST mostrar tabla preview `Antes -> Después` antes de aplicar, con detección de colisiones en rojo.
 - MUST nunca permitir dos outputs iguales en el mismo folder; si colisiona, auto-sugiere numeración y bloquea Apply hasta resolver.
-- MUST escribir `rename_log.csv` (timestamp, old_path, new_path) para undo manual v1.
-- Output: archivos renombrados según modo salida §FR-7 (copia o in-place).
+- NO escribe sidecars (decisión owner 28-oct-2026: `rename_log.csv` eliminado, las carpetas del user quedan limpias). El resumen vive en el panel de la app.
+- Output: archivos renombrados según modo salida §FR-8 (copia o in-place).
 - Error: nombre resultante >180 chars o vacío -> bloquea fila + explica.
-- Verificación: AC-4. Ejemplo crítico owner: `snare_03.wav` + suffix `@dario` MUST dar `snare_03_@dario.wav`, NO `snare@dario03.wav`.
+- Verificación: AC-4. Ejemplo crítico owner: `snare_03.wav` + suffix `@producer` MUST dar `snare_03_@producer.wav`, NO `snare@producer03.wav`.
 
 **FR-5 [DEGRADADO v1 — solo hint pasivo, sin auto-move] Clasificación por keyword (sin IA)**
 - Input: archivo inventariado.
@@ -149,14 +149,14 @@ Convención: cada FR tiene `Input / Behavior / Output / Error path`. Todo `must`
   - Preserve OFF: MUST guardar flat en output folder (aplana, con numeración anti-colisión).
   - Mode Copy (default): MUST nunca borrar originales.
   - Mode Overwrite/In-place (explícito + confirm dialog con conteo): MUST permitir reemplazo solo tras éxito verificado (output existe + size>0 + ffprobe ok), luego borra/renombra original según operación. Para rename puro in-place MUST operar directo.
-- Output: archivos en destino + `process_report.csv`.
+- Output: archivos en destino. Sin sidecars (decisión owner 28-oct-2026: carpetas del user siempre limpias).
 - Error: sin espacio disco (estimado `input_bytes*1.8 + 100MB`) -> bloquea START.
 - Verificación: AC-8.
 
-**FR-9 Reporte + SQLite persistente**
+**FR-9 Resumen en UI + SQLite persistente**
 - Input: batch terminado.
-- Behavior: MUST escribir `process_report.csv` + mantener `library.db` con estados `pending/done/skipped/failed`. MUST mostrar resumen `copiados/convertidos/normalizados/renombrados/skipeados/fallidos`.
-- Output: CSV + DB consultable.
+- Behavior: MUST mantener `library.db` con estados `pending/done/skipped/failed`. MUST mostrar resumen `copiados/convertidos/normalizados/renombrados/skipeados/fallidos` en el panel de log + popup. NO escribe `process_report.csv` (eliminado con los sidecars).
+- Output: DB consultable + resumen visible.
 - Verificación: AC-9.
 
 ---
@@ -180,9 +180,9 @@ Convención: cada FR tiene `Input / Behavior / Output / Error path`. Todo `must`
 - **Top bar común:** Add folder (Ctrl+O) / Add files / Clear (Del) + contador `X files / Y packs / Z GB` + warning admin (sin drag&drop).
 - **Izquierda (tall):** grupo `FILES` con tabla `File (stretch) | Folder (220px) | Category? hint pasivo FR-5 (110px)`, tooltips con path completo, selección por filas.
 - **Derecha (2x ancho):** tabs independientes:
-- **Tab 1 ORGANIZER:** preset único `sp404_splice` + Create, inputs verticales Prefix/Suffix/Old/New a ancho completo, checks `Whole name (=New)` + `Numerate`, `Copy to output` default OFF (= in-place rename), tabla preview `Before/After (stretch) | Error (220px)` + `APPLY RENAME` ámbar + `process_report_organizer.csv`.
-- **Tab 2 CONVERTER:** sample_rate dropdown (48k/44.1k), Force-to-rate toggle, keep-mono toggle, columna `copy/convert/skip` (FR-2), su propio output+mode + `START CONVERT`/`Cancel` + progress + `process_report_converter.csv`.
-- **Tab 3 NORMALIZER:** target peak (-1.0), tolerance (0.5), replace-original toggle (solo next-to-source, herencia), su propio output+mode + `START NORMALIZE`/`Cancel` + progress + `process_report_normalizer.csv`.
+- **Tab 1 ORGANIZER:** preset único `sp404_splice` + Create, inputs verticales Prefix/Suffix/Old/New a ancho completo, checks `Whole name (=New)` + `Numerate`, `Copy to output` default OFF (= in-place rename), tabla preview `Before/After (stretch) | Error (220px)` + `APPLY RENAME` ámbar + resumen en el panel.
+- **Tab 2 CONVERTER:** sample_rate dropdown (48k/44.1k), Force-to-rate toggle, keep-mono toggle, columna `copy/convert/skip` (FR-2), su propio output+mode + `START CONVERT`/`Cancel` + progress + resumen en el panel.
+- **Tab 3 NORMALIZER:** target peak (-1.0), tolerance (0.5), replace-original toggle (solo next-to-source, herencia), su propio output+mode + `START NORMALIZE`/`Cancel` + progress + resumen en el panel.
 
 NO hay botón START global. NO hay wizard que obligue a pasar por los 3.
 
@@ -202,37 +202,39 @@ NO hay botón START global. NO hay wizard que obligue a pasar por los 3.
 - **AC-1 (FR-1):** Arrastrar carpeta test `demo_pack/Drums/Kick/k1.wav,k2.mp3` -> inventario muestra 2 filas agrupadas bajo header `demo_pack`, DB tiene 2 rows. `pytest tests/test_scan.py::test_group_by_source -q` green.
 - **AC-2 (FR-2):** Archivo `x_sp.wav` a 48k stereo MUST marcar `skip`. `y_44k.wav` con target 48k + Force ON MUST marcar `convert`. Test `test_classifier_rules`.
 - **AC-3 (FR-3):** Preset único `sp404_splice` en carpeta vacía MUST crear 16 paths exactos (Kicks, 808s_Bass, FX_Textures, Favorites, Oneshots/Drums, Loops/BPM_120, Artwork, MIDI...). `pytest tests/test_organizer.py -q` green + `dir /s` manual.
-- **AC-4 (FR-4):** Seleccionar 3 files + suffix `@dario` -> preview muestra `*_@dario.wav`, sin colisión, Apply genera files + `rename_log.csv` con 3 líneas. Test `test_bulk_suffix_append`.
+- **AC-4 (FR-4):** Seleccionar 3 files + suffix `@producer` -> preview muestra `*_@producer.wav`, sin colisión, Apply genera files y cero `*.csv` junto a los samples. Test `test_bulk_suffix_append`.
 - **AC-5 (FR-5 degradado):** `808_glide_C.wav` muestra `808s_Bass` y `mystery_xyz.wav` muestra `Unsorted` en columna informativa. No mueve nada. Test `test_guess_category`.
 - **AC-6 (FR-6):** Convertir tono `mp3 44.1k` -> output `_sp.wav` y `ffprobe -show_streams` MUST dar `sample_rate=48000, channels=2, codec_name=pcm_s16le`. Test e2e `test_convert_tone`.
 - **AC-7 (FR-7):** Tono -6dB peak + target -1dB -> output `_N.wav` con `max_volume ≈ -1.0 ±0.3dB` medido con volumedetect. Tono ya en -1.0 ±0.5 MUST skip. Test `test_normalize_gain`.
 - **AC-8 (FR-8):** Sin output folder + Preserve ON MUST crear `<source>_trakk/` espejo. Con output + Preserve OFF MUST aplanar sin duplicados. Overwrite mode MUST pedir confirm + solo borrar tras ffprobe ok. Test `test_output_resolver`.
-- **AC-9 (FR-9):** Tras batch MUST existir `process_report.csv` y `library.db` con counts que cuadran con UI summary.
+- **AC-9 (FR-9):** Tras batch el panel muestra counts que cuadran con ok/skip/fail y `library.db` los persiste. Sin CSVs en carpetas del user.
 
 **Gate release v1:** `pytest -q` green (mín 60 tests, tonos generados on-the-fly, skip si no ffmpeg), `start.bat` funciona en máquina limpia, `python build_exe.py` produce `dist/TRAKKSTUDIO.exe` portable con ffmpeg+ffprobe bundlados.
 
 ---
 
-## 7. Milestones
+## 7. Milestones (estado 2026-10-28)
 
-- **M0 Spec (esta semana):** Congelar este SRS. Owner aprueba nombre TRAKKSTUDIO + presets + suffix `@username`.
-- **Sprint 1 — Engine puro (sin GUI):** `db.py + organizer.py (scan/rename/structure) + converter.py + normalizer.py` portados desde repos + tests 60. Done = `pytest -q` green + CLI `python -m engine --scan demo`.
-- **Sprint 2 — GUI mínima:** `gui.py` queue + preview rename + process panel + `styles.qss` + `start.bat`. Done = drag&drop 1000 files <60s manual.
-- **MVP v1.0:** Exe portable + README + MAINTENANCE + `process_report.csv`. Done = instala en USB, corre sin Python/FFmpeg, convierte+normaliza+renombra pack real 500 files sin pérdida.
-- **Backlog v1.1+:** undo rename desde CSV, keep-mono toggle, 24-bit toggle, LUFS mode, export Splice ZIP con artwork, detector BPM/key.
+- **[DONE] M0 Spec:** SRS v1.0 CONGELADO. Owner aprobó nombre TRAKKSTUDIO + preset único + suffix `@producer`.
+- **[DONE] Sprint 1 — Engine puro (sin GUI):** `db.py + organizer.py + converter.py + normalizer.py` + 45 tests. Done = `pytest -q` green + CLI `main.py --scan/--preset`.
+- **[DONE] Sprint 2 — GUI:** 2 columnas (FILES izq + 3 tabs der, splitter), `styles.qss` ámbar heritage, rename in-place + Whole name + Numerate. Done = drag&drop 100+ files legibles.
+- **[DONE] Build 2:** exe con QSS bundlado (`--add-data` + `resource_path()`), cero sidecars. Pusheado + tag `v1.0`. Pendiente: test en otro PC.
+- **[TODO] MVP v1.0:** USB test pack real 500 files sin pérdida ni sidecars → tag + release.
+- **Backlog v1.1+:** reporte opcional a %APPDATA%, undo rename, keep-mono toggle, 24-bit toggle, LUFS mode, export Splice ZIP con artwork, detector BPM/key, icono `icon.ico`, FR-5 v2.
 
 ---
 
 ## 8. Decisiones congeladas para v1 (freeze 2026-10-27)
 
 1. Nombre: **TRAKKSTUDIO multitool (3 tabs independientes)**.
-2. Sufijos heritage se mantienen por tool: `_sp` solo Converter, `_N` solo Normalizer, `_@tag` solo Organizer append. Solo si el usuario encadena manualmente se combinan ej: `Kick_01_@dario_sp_N.wav`.
+2. Sufijos heritage se mantienen por tool: `_sp` solo Converter, `_N` solo Normalizer, `_@tag` solo Organizer append. Solo si el usuario encadena manualmente se combinan ej: `Kick_01_@producer_sp_N.wav`.
 3. Defaults por tab: Organizer `in-place` (Copy OFF); Converter/Normalizer `Mode=Copy`, `Preserve=ON`, Converter `Force to rate=ON`, `48kHz/16-bit/stereo`, Normalizer `Target -1.0dB / Tol 0.5dB`.
 4. In-place rename directo (sin confirm extra); overwrite convert/normalize solo tras ffprobe OK.
 5. Preset único `sp404_splice` (16 paths, fusión SP-404 + Splice). Resto de presets eliminados.
 6. FR-5 degradado a hint pasivo. Sin detección por contenido en v1.
 7. Layout 2 columnas (files izq + tools der) con splitter + brand ámbar `#F5A623` heritage. Sin iconos en v1.
-8. No hay START global. Cada tab tiene su START/Cancel y su CSV.
+8. Cero sidecars: ni `rename_log.csv` ni `process_report_*.csv` junto a los samples (owner 28-oct-2026). Resumen solo en UI + DB.
+9. No hay START global. Cada tab tiene su START/Cancel.
 
 ## 9. Backlog (no hacer en v1)
 
