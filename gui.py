@@ -86,8 +86,11 @@ def about_text() -> str:
         f"TRAKKSTUDIO v{APP_VERSION}\n"
         "Offline multitool for beatmakers · ShardBeats TRAKK SUITE\n"
         "\n"
+        "Organize · Convert to SP-404MK2 WAV · Peak-normalize.\n"
+        "3 independent tools, one window. No accounts, no cloud.\n"
+        "\n"
         "MIT licensed (see LICENSE + NOTICE.md + THIRD-PARTY-NOTICES.md).\n"
-        "Portable and offline: inventory lives in %APPDATA%/TRAKKSTUDIO/library.db."
+        "Inventory: %APPDATA%/TRAKKSTUDIO/library.db"
     )
 
 
