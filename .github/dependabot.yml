@@ -1,0 +1,9 @@
+# Dependabot: weekly pip updates (same cadence as the TRAKK SUITE).
+# Note: TRAKKSTUDIO has no pytest-bdd, so pytest may float past 9.2 safely
+# (unlike TRAKKART, which pins pytest<9.2 for pytest-bdd compat).
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
