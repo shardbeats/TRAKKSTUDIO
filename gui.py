@@ -242,7 +242,7 @@ class MainWindow(QMainWindow):
         split.setChildrenCollapsible(False)
         lay.addWidget(split, 1)
 
-        self.lblFooter = QLabel(f"SHARDBEATS TRAKK SUITE · portable · offline · v{APP_VERSION}")
+        self.lblFooter = QLabel(f"SHARDBEATS TRAKK SUITE · v{APP_VERSION}")
         self.lblFooter.setObjectName("footerLabel")
         lay.addWidget(self.lblFooter)
 
