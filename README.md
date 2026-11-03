@@ -112,7 +112,6 @@ TRAKKSTUDIO/
 - [x] **Safety:** APPLY confirm with count.
 - [x] **MVP tested:** full pass on a second PC (Win10 Pro) — install, scan, convert, normalize, preview, uninstall.
 - [x] **Release:** `v1.0` published on GitHub (`TRAKKSTUDIO.exe` + `TRAKKSTUDIO-Setup-1.0.exe` + SHA256).
-- [ ] **Backlog v1.1+:** optional `%APPDATA%` report, 24-bit/keep-mono toggles, LUFS, Splice ZIP, FR-5 v2.
 
 ## License
 
