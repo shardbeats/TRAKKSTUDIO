@@ -3,51 +3,51 @@
 ## [Unreleased]
 
 ### Added
-- Confirm de APPLY con conteo: antes de renombrar pregunta `N archivos (modo)?` + alcance (`N seleccionados de M` o aviso `TODOS`) + destino; default No. Frena el accidente de renombrar el pack entero.
-- Playback preview: doble-click en cualquier fila (o Play) escucha el sample vía ffplay audio-only (`-nodisp -autoexit`); Stop lo corta; `build_exe.py` bundla `ffplay.exe` para que el portable suene. Sin modales: sin binario avisa en el label.
-- Preview auto-cut: al seleccionar otra fila se corta la reproducción en curso sin tocar Stop; `finished` tardío de un preview matado nunca borra al proceso nuevo (guard por identidad).
-- Tests: `tests/test_player.py` (8 tests, playback real con tonos). Suite 52 → 60.
-- Guía y atajos: Space de ventana rutea al tab visible (START Convert/Normalize, Preview rename, Cancel si hay batch; nunca mientras escribes), menú Help (Quick tour F1, Keyboard shortcuts, About), tour de bienvenida solo en primer arranque (`%APPDATA%/TRAKKSTUDIO/.welcomed`, revívelo en Help).
-- `APP_VERSION` single-source en `gui.py` (footer + About la leen de ahí).
-- Tests: `tests/test_guide.py` (7 tests offscreen). Suite 45 → 52.
+- APPLY confirm with count: before renaming it asks `N files (mode)?` + scope (`N selected of M` or `ALL` warning) + destination; default No. Kills the whole-pack accident.
+- Audio preview: double-click any row (or Play) listens to the sample via audio-only ffplay (`-nodisp -autoexit`); Stop cuts it; `build_exe.py` bundles `ffplay.exe` so the portable plays sound. No modals: missing binary warns in the label.
+- Preview auto-cut: selecting another row cuts the running playback without touching Stop; a late `finished` from a killed preview never wipes the new process (identity guard).
+- Guide & shortcuts: window Space routes to the visible tab (START Convert/Normalize, Preview rename, Cancel on running batch; never while typing), Help menu (Quick tour F1, Keyboard shortcuts, About), first-run-only welcome tour (`%APPDATA%/TRAKKSTUDIO/.welcomed`, reopen in Help).
+- `APP_VERSION` single-source in `gui.py` (footer + About read it from there).
+- Tests: `tests/test_guide.py` (10 tests offscreen), `tests/test_player.py` (10 tests, real playback on tones). Suite 45 → 65.
 
 ## [v1.0] — 2026-11-02 (build 2 + installer, tag v1.0)
 
 ### Added
-- Installer `installer/trakkstudio.iss` (Inno Setup 6, per-user sin admin, EN/ES) + `build_installer.py` (`STABLE_VERSION` debe igualar el footer de `gui.py`) → `dist/TRAKKSTUDIO-Setup-1.0.exe` (210MB). Smoke verde: install silencioso, scan CLI del exe instalado, GUI offscreen, uninstall silencioso.
-- `resource_path()` helper (`_MEIPASS` primero): QSS e icono resuelven dentro del exe.
-- Columna Folder compacta (`pack/sub`, tooltip con ruta completa), header de filas oculto, panel FILES mínimo 400px, splitter 470/610.
+- Installer `installer/trakkstudio.iss` (Inno Setup 6, per-user no admin, EN/ES) + `build_installer.py` (`STABLE_VERSION` must match the `gui.py` footer) → `dist/TRAKKSTUDIO-Setup-1.0.exe` (210MB). Smoke green: silent install, installed-exe CLI scan, offscreen GUI, silent uninstall.
+- App icon (option C, 3 amber layers): `make_icon.py` + `icon.png`/`icon.ico` bundled in the exe (`--icon` + `--add-data`).
+- `resource_path()` helper (`_MEIPASS` first): QSS and icon resolve inside the exe.
+- Compact Folder column (`pack/sub`, full path in tooltip), hidden row header, FILES panel min 400px, 470/610 splitter.
 
 ### Changed
 - Placeholder suffix: `@dario` → `@producer` (GUI, tests, SRS).
 
 ### Fixed
-- Exe mostraba tema nativo claro: `styles.qss` ahora viaja con `--add-data` (antes solo `--add-binary` de ffmpeg). Regla añadida a los skills.
-- Columna File truncada (`N...`): Folder ocupaba 220px fijos con rutas absolutas.
+- Exe showed native light theme: `styles.qss` now travels with `--add-data` (was only ffmpeg `--add-binary`). Rule added to the skills.
+- Truncated File column (`N...`): Folder took 220px fixed with absolute paths.
 
 ### Removed
-- Sidecars junto a los samples: `rename_log.csv` y `process_report_*.csv` ya no se escriben (carpetas del user siempre limpias). Resumen solo en panel UI + `library.db`. Sin esto no hay undo vía CSV.
+- Sidecars next to samples: `rename_log.csv` and `process_report_*.csv` are no longer written (user folders always clean). Summary only in UI panel + `library.db`. No CSV-based undo after this.
 
-## [v1.0-freeze] — 2026-10-27 (freeze SRS, GUI 2 columnas)
+## [v1.0-freeze] — 2026-10-27 (SRS freeze, 2-column GUI)
 
 ### Added
-- Multitool 3 tabs independientes (Organizer / Converter SP-404 / Normalizer peak) + shared scan SQLite.
-- Organizer: preset único `sp404_splice` (16 carpetas), bulk rename preview con Replace RAW-first, Whole name (=New), Prefix/Suffix `@tag`, Numerate, in-place default, `rename_log.csv`.
-- Converter herencia TRAKKCONVERTER (`_sp.wav`, 48k/16-bit/stereo, Force-to-rate, skip `_sp`).
-- Normalizer herencia TRAKKNORMALIZER (`_N.wav`, -1.0dB ±0.5dB, skip silencio).
-- GUI 2 columnas (FILES izq + tools der, splitter), tema ámbar `#F5A623` heritage, reportes CSV por tab.
-- Tests: 45 pytest (tonos generados, skip sin ffmpeg).
+- Multitool with 3 independent tabs (Organizer / Converter SP-404 / Normalizer peak) + shared SQLite scan.
+- Organizer: single `sp404_splice` preset (16 folders), bulk rename preview with RAW-first Replace, Whole name (=New), Prefix/Suffix `@tag`, Numerate, in-place default, `rename_log.csv`.
+- Converter with TRAKKCONVERTER heritage (`_sp.wav`, 48k/16-bit/stereo, Force-to-rate, `_sp` skip).
+- Normalizer with TRAKKNORMALIZER heritage (`_N.wav`, -1.0dB ±0.5dB, silence skip).
+- 2-column GUI (FILES left + tools right, splitter), heritage amber `#F5A623` theme, per-tab CSV reports.
+- Tests: 45 pytest (generated tones, skip without ffmpeg).
 
 ### Changed
-- FR-5 degradado a hint pasivo (sin auto-move ni contenido audio).
-- Copy mode rename default OFF (in-place).
+- FR-5 degraded to passive hint (no auto-move, no audio content).
+- Rename Copy mode default OFF (in-place).
 
 ### Fixed
-- Replace con espacios (`Kick 01`) no matcheaba por Clean-first.
-- Columna Category? se comía el ancho (File truncado).
+- Replace with spaces (`Kick 01`) didn't match without Clean-first.
+- Category? column ate the width (File truncated).
 
 ## [v1.0-build1] — 2026-10-27 (portable)
 
 ### Added
-- `dist/TRAKKSTUDIO.exe` one-file windowed, 210MB, ffmpeg 9.0.1 + ffprobe bundlados (`--add-binary`, verificado en log de build).
-- README 10 secciones + MAINTENANCE + CHANGELOG a formato skill. SRS CONGELADO v1.0.
+- `dist/TRAKKSTUDIO.exe` one-file windowed, 210MB, ffmpeg 9.0.1 + ffprobe bundled (`--add-binary`, verified in build log).
+- 10-section README + MAINTENANCE + skill-format CHANGELOG. SRS FROZEN v1.0.

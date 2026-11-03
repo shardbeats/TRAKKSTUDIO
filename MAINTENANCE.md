@@ -1,19 +1,19 @@
 # MAINTENANCE — TRAKKSTUDIO
 
-## Versionar (1 min)
+## Versioning (1 min)
 
-1. Sube `APP_VERSION` en `gui.py` (footer + About la leen de ahí) y `STABLE_VERSION` en `build_installer.py` si hay installer.
-2. Agrega entrada en `CHANGELOG.md` (Added/Fixed/Changed + fecha).
-3. `pytest tests -q` en verde antes de commitear.
+1. Bump `APP_VERSION` in `gui.py` (footer + About read it from there) and `STABLE_VERSION` in `build_installer.py` if there is an installer.
+2. Add a `CHANGELOG.md` entry (Added/Fixed/Changed + date).
+3. `pytest tests -q` green before committing.
 
-## Rebuild exe portable
+## Rebuild portable exe
 
 ```
 .venv\Scripts\python.exe -m pip install pyinstaller
 .venv\Scripts\python.exe build_exe.py
 ```
 
-Sale en `dist/TRAKKSTUDIO.exe` (v1.0 real: 210MB con FFmpeg 9 full build + Qt6; con build essentials ~120MB) con ffmpeg/ffprobe bundlados vía `--add-binary`. Sin `icon.ico` usa el default de PyInstaller. Documenta tamaño real + nota falso-positivo antivirus en el release.
+Lands in `dist/TRAKKSTUDIO.exe` (v1.0 actual: 210MB with FFmpeg 9 full build + Qt6; ~120MB with essentials build) with ffmpeg/ffprobe/ffplay bundled via `--add-binary`. Without `icon.ico` it uses the PyInstaller default. Document real size + antivirus false-positive note in the release.
 
 ## Installer (Inno Setup 6)
 
@@ -21,15 +21,16 @@ Sale en `dist/TRAKKSTUDIO.exe` (v1.0 real: 210MB con FFmpeg 9 full build + Qt6; 
 python build_installer.py
 ```
 
-Necesita `dist/TRAKKSTUDIO.exe` ya construido. Sale en `dist/TRAKKSTUDIO-Setup-<version>.exe` (per-user, sin admin, EN/ES, con desinstalador). Versión en `build_installer.py: STABLE_VERSION` (debe igualar el footer de `gui.py`). Build sin firmar: SmartScreen avisará en el primer run.
+Needs `dist/TRAKKSTUDIO.exe` already built. Lands in `dist/TRAKKSTUDIO-Setup-<version>.exe` (per-user, no admin, EN/ES, with uninstaller). Version in `build_installer.py: STABLE_VERSION` (must match the `gui.py` footer). Unsigned build: SmartScreen will warn on first run.
 
-## Datos locales / backup
+## Local data / backup
 
-- DB: `%APPDATA%/TRAKKSTUDIO/library.db` (borrable, se regenera con scan).
-- Logs: resumen en el panel UI + `library.db`. Sin sidecars junto a los samples desde Build 2 (no hay undo vía CSV).
-- No hay keys, cuentas ni cloud: nada que rotar.
+- DB: `%APPDATA%/TRAKKSTUDIO/library.db` (deletable, regenerates on scan).
+- First-run flag: `%APPDATA%/TRAKKSTUDIO/.welcomed` (delete to see the tour again).
+- Logs: summary in the UI panel + `library.db`. No sidecars next to samples since Build 2 (no CSV-based undo).
+- No keys, accounts or cloud: nothing to rotate.
 
-## Reglas de release
+## Release rules
 
-- Main siempre verde (`pytest -q`), `start.bat` probado en máquina limpia.
-- Tags `v1.0`, `v1.1`… en GitHub para cada portable.
+- Main always green (`pytest -q`), `start.bat` tested on a clean machine.
+- Tags `v1.0`, `v1.1`… on GitHub for each portable.

@@ -1,251 +1,256 @@
 # TRAKKSTUDIO — SRS v1.0 (Software Requirements Specification)
 
-**Estado:** CONGELADO v1.0 — aprobado por owner 2026-10-27 (chat)
-**Fecha freeze:** 2026-10-27
-**Autor:** Ing. Senior + ShardBeats (owner)
+**Status:** FROZEN v1.0 — approved by owner 2026-10-27 (chat)
+**Freeze date:** 2026-10-27
+**Author:** Senior Eng. + ShardBeats (owner)
 **Repo:** `D:\Proyectos programacion\TRAKKSTUDIO` → https://github.com/shardbeats/TRAKKSTUDIO
-**Stack congelado:** Python 3.10+ + PySide6 + SQLite (stdlib) + FFmpeg local + PyInstaller portable .exe
+**Frozen stack:** Python 3.10+ + PySide6 + SQLite (stdlib) + local FFmpeg + portable PyInstaller .exe
 
 ---
 
-## 1. Goal + Arquitectura Multitool
+## 1. Goal + Multitool Architecture
 
-**Goal:** Herramienta desktop portable offline-first para beatmakers que reúne **3 tools independientes en el mismo programa**, compartiendo solo inventario + gestión de folders:
-- **TOOL-ORGANIZER:** organizar masivo (crear estructura + clasificar + bulk rename con tag `@producer`).
-- **TOOL-CONVERTER:** convertir batch a WAV compatible SP-404MK2 (hereda 100% TRAKKCONVERTER).
-- **TOOL-NORMALIZER:** normalizar peak por archivo propio (hereda 100% TRAKKNORMALIZER).
+**Goal:** Offline-first portable desktop tool for beatmakers that bundles **3 independent tools in one program**, sharing only inventory + folder management:
+- **TOOL-ORGANIZER:** bulk organize (create structure + classify + bulk rename with `@producer` tag).
+- **TOOL-CONVERTER:** batch convert to SP-404MK2-compatible WAV (100% TRAKKCONVERTER heritage).
+- **TOOL-NORMALIZER:** peak-normalize per file (100% TRAKKNORMALIZER heritage).
 
-**Principio arquitectónico v1 (aclaración owner 27-oct-2026):**
-Cada tool es **opcional e independiente**. El producer puede abrir la app y usar SOLO Normalizer, SOLO Converter, o SOLO Rename, sin pasar por las otras. NO hay pipeline obligatorio.
+**v1 architecture principle (owner note 27-oct-2026):**
+Each tool is **optional and independent**. The producer can open the app and use ONLY the Normalizer, ONLY the Converter, or ONLY Rename, without touching the others. NO mandatory pipeline.
 
 ```
-                +---------------------+
-                |  Shared Services    |
-                | Scan/Inventario DB  |
-                | Folder resolver     |
-                | (Copy/Overwrite)    |
-                +-----+------+------+--+
-                      |      |      |
-        +-------------+      |      +-------------+
-        |                    |                    |
+                 +---------------------+
+                 |  Shared Services    |
+                 | Scan/Inventory DB   |
+                 | Folder resolver     |
+                 | (Copy/Overwrite)    |
+                 +-----+------+------+--+
+                       |      |      |
+         +-------------+      |      +-------------+
+         |                    |                    |
 TOOL ORGANIZER      TOOL CONVERTER      TOOL NORMALIZER
-estructura +        48k/16b/stereo      peak -1dB propio
+structure +         48k/16b/stereo      own-peak -1dB
 bulk rename         _sp.wav             _N.wav
-@tag append         copy/convert/skip   skip si ±0.5dB
+@tag append         copy/convert/skip   skip if ±0.5dB
 ```
 
-Encadenar tools (ej: Rename -> Convert -> Normalize) es posible manualmente reutilizando la salida como entrada, pero NUNCA automático ni forzado.
+Chaining tools (e.g. Rename -> Convert -> Normalize) is possible manually by reusing the output as input, but NEVER automatic or forced.
 
 ---
 
-## 2. Usuarios + No-Goals
+## 2. Users + Non-Goals
 
-### 2.1 Usuarios
-- **U1 Beatmaker / Producer:** tiene 5-50GB de drumkits desordenados, quiere limpiar, uniformar a 48kHz/16-bit/stereo para SP-404MK2 o DAW, normalizar a -1dB, y taggear con su `@username` sin romper nombres.
-- **U2 Creador de packs para venta (Splice-ready):** quiere crear estructura estándar, nombrar `PACK_Tipo_BPM_Key_NombreUnico.wav`, dejar headroom -1dB, exportar pack uniforme.
+### 2.1 Users
+- **U1 Beatmaker / Producer:** owns 5-50GB of messy drumkits, wants to clean up, uniform them to 48kHz/16-bit/stereo for the SP-404MK2 or a DAW, normalize to -1dB, and tag with their `@username` without breaking names.
+- **U2 Pack seller (Splice-ready):** wants a standard structure, names like `PACK_Type_BPM_Key_UniqueName.wav`, -1dB headroom, a uniform pack export.
 
-### 2.2 Non-Goals v1 (van a Backlog, NO se hacen en sprint 1)
-- NG-1: No hay auto-tag por IA / detección de key/BPM por audio. Solo inferencia por nombre de archivo/carpeta + metadatos ffprobe.
-- NG-2: No hay preview con efectos, ni edizione de waveform, ni chop/slice. (Audio-only preview sí: doble-click/Play vía ffplay, sin ventana.)
-- NG-3: No hay loudness LUFS global del pack, ni compresión, ni fades correctivos de loops (solo se documenta si el loop clickea).
-- NG-4: No hay cloud, login, telemetría, auto-update server, ni base de datos en red.
-- NG-5: No hay soporte video (ese es otro módulo TRAKK).
-- NG-6: No hay soporte para 20 formatos. Solo 11 de CONVERTER en v1.
-- NG-7: No hay settings dialog complejo. Solo 1 pantalla + 3 paneles colapsables.
+### 2.2 v1 Non-Goals (Backlog, NOT sprint 1)
+- NG-1: No AI auto-tag / key/BPM detection from audio. Only filename/folder inference + ffprobe metadata.
+- NG-2: No effect playback preview, no waveform editing, no chop/slice. (Audio-only preview allowed: double-click/Play via ffplay, no window.)
+- NG-3: No pack-wide LUFS loudness, no compression, no loop-click repair fades (a clicking loop is only documented).
+- NG-4: No cloud, login, telemetry, auto-update server, or networked database.
+- NG-5: No video support (that's another TRAKK module).
+- NG-6: No 20-format support. Only the 11 CONVERTER formats in v1.
+- NG-7: No complex settings dialog. Just 1 screen + 3 collapsible panels.
 
 ---
 
-## 3. Requisitos Funcionales
+## 3. Functional Requirements
 
-Convención: cada FR tiene `Input / Behavior / Output / Error path`. Todo `must` tiene verificación en §6.
+Convention: each FR states `Input / Behavior / Output / Error path`. Every `must` is verified in §6.
 
-### MÓDULO A — Shared Inventario (servicio común, no es un proceso)
+### MODULE A — Shared Inventory (common service, not a process)
 
-**FR-0 Independencia de tools (regla global)**
-- Behavior: MUST cumplirse para todo FR-4/FR-6/FR-7: cada tool tiene su propio botón START/Cancel, su propio output folder + modo Copy/Overwrite, su propio reporte CSV. MUST ser posible ejecutar FR-4 solo, FR-6 solo, o FR-7 solo sin tocar los otros. Comparten FR-1 (scan) y FR-8 (folder resolver) como librería, no como paso previo obligatorio.
-- Verificación: AC-0: abrir app, cargar 10 files, correr SOLO Normalize -> 10x `_N.wav` sin crear ningún `_sp.wav` ni rename. Y viceversa.
+**FR-0 Tool independence (global rule)**
+- Behavior: MUST hold for every FR-4/FR-6/FR-7: each tool has its own START/Cancel button, its own output folder + Copy/Overwrite mode, its own CSV report. MUST be able to run FR-4 alone, FR-6 alone, or FR-7 alone without touching the others. They share FR-1 (scan) and FR-8 (folder resolver) as a library, never as a mandatory prior step.
+- Verification: AC-0: open the app, load 10 files, run ONLY Normalize -> 10x `_N.wav` with zero `_sp.wav` and zero renames. And vice versa.
 
-**FR-1 Escaneo masivo drag&drop**
-- Input: 1..N rutas arrastradas (archivos o carpetas, incluyendo packs anidados), botón Add Folder.
-- Behavior: MUST recorrer recursivo, filtrar por extensiones soportadas `wav, mp3, flac, ogg, m4a, aac, aiff, aif, wma, opus, webm` (case-insensitive). MUST agrupar por carpeta fuente con header (como CONVERTER). MUST guardar en SQLite local `library.db`: path, size, mtime, sha1-parcial (primeros 64KB para dedup rápido), formato/ffprobe (sample_rate, channels, codec, bits), duración, estado.
-- Output: tabla inventario + contador `X archivos / Y packs / Z GB`. Tiempo visible.
-- Error: ruta inexistente o sin permiso -> fila en log + skip, no aborta batch. Si se corre como Administrador en Windows MUST mostrar warning "drag&drop bloqueado por Windows, corre normal" (heredado de CONVERTER).
-- Verificación: §6 AC-1.
+**FR-1 Mass drag&drop scan**
+- Input: 1..N dropped paths (files or folders, including nested packs), Add Folder button.
+- Behavior: MUST walk recursively, filter by supported extensions `wav, mp3, flac, ogg, m4a, aac, aiff, aif, wma, opus, webm` (case-insensitive). MUST group by source folder with a header (like CONVERTER). MUST store in local SQLite `library.db`: path, size, mtime, partial sha1 (first 64KB for fast dedup), format/ffprobe (sample_rate, channels, codec, bits), duration, status.
+- Output: inventory table + `X files / Y packs / Z GB` counter. Visible timing.
+- Error: missing path or no permission -> log row + skip, never aborts the batch. When running as Administrator on Windows MUST show a "drag&drop blocked by Windows, run normally" warning (CONVERTER heritage).
+- Verification: §6 AC-1.
 
-**FR-2 Detección no-reprocesar + copy-vs-convert**
-- Input: archivo inventariado.
-- Behavior: MUST skip automático si filename termina en `_sp.wav` (ya convertido) o `_N.wav` (ya normalizado) salvo flag explícito `Re-procesar`. MUST clasificar por reglas CONVERTER:
-  - `already_at_target` -> copiar sin re-encode
-  - `different_rate_compatible` -> resamplear si `Force to rate = ON` (default ON para uniformidad)
-  - `compressed_or_mismatch` -> convertir
-- Output: columna `Acción: copy/convert/skip` en preview.
-- Error: ffprobe falla -> marcar `unreadable`, listar al final.
-- Verificación: AC-2.
+**FR-2 No-reprocess detection + copy-vs-convert**
+- Input: inventoried file.
+- Behavior: MUST auto-skip when the filename ends in `_sp.wav` (already converted) or `_N.wav` (already normalized) unless an explicit `Re-process` flag is set. MUST classify with the CONVERTER rules:
+  - `already_at_target` -> copy without re-encode
+  - `different_rate_compatible` -> resample when `Force to rate = ON` (default ON for uniformity)
+  - `compressed_or_mismatch` -> convert
+- Output: `Action: copy/convert/skip` column in preview.
+- Error: ffprobe fails -> mark `unreadable`, list at the end.
+- Verification: AC-2.
 
-**FR-3 Crear estructura de carpetas desde el programa (preset único fusión, per owner)**
-- Input: carpeta destino (preset fijo `sp404_splice`, sin selector).
-- Behavior: MUST crear preset único fusión SP-404 + Splice:
+**FR-3 In-app folder structure (single merged preset, per owner)**
+- Input: destination folder (fixed `sp404_splice` preset, no selector).
+- Behavior: MUST create the single SP-404 + Splice merged preset:
   `Kicks/ Snares_Claps/ HiHats/ Percs/ 808s_Bass/ FX_Textures/ Oneshots/{Drums,Bass,Synth,Vox}/ Loops/{BPM_120,BPM_140,BPM_150}/ MIDI/ Favorites/ Artwork/`
-- MUST crear en disco sin borrar nada existente, con `dry-run` listado antes.
-- Output: carpetas creadas + log.
-- Error: destino sin escritura -> error bloqueante con mensaje path.
-- Verificación: AC-3.
+- MUST create on disk without deleting anything existing, with a `dry-run` listing first.
+- Output: created folders + log.
+- Error: unwritable destination -> blocking error with the path.
+- Verification: AC-3.
 
-### MÓDULO B — TOOL ORGANIZER independiente (core pedido por owner)
+### MODULE B — TOOL ORGANIZER standalone (owner-requested core)
 
-**FR-4 Bulk rename con preview + append producer tag (standalone)**
-- Input: N archivos seleccionados (1..10000), operación elegida.
-- Behavior: MUST soportar en v1 estas 5 ops combinables en orden fijo:
-  1. `Clean`: trim, colapsa espacios, reemplaza espacios por `_`, quita caracteres `<>:"/\|?*` Windows-ilegales.
-  2. `Replace text`: buscar `old` -> `new` (case-insensitive toggle).
-  3. `Add prefix`: `PACK_` o custom.
-  4. `Add suffix (append tag)`: concatena al stem SIN modificar base. Ej: `Kick_Trap_01` + suffix `@shardbeats` -> `Kick_Trap_01_@shardbeats`. MUST sanitizar `@` permitido, pero convertir espacios en suffix a `_`. Default OFF.
-  5. `Numerate`: `_{001}` con inicio/padding elegible, solo si hay colisión o usuario lo pide.
-- MUST mostrar tabla preview `Antes -> Después` antes de aplicar, con detección de colisiones en rojo.
-- MUST nunca permitir dos outputs iguales en el mismo folder; si colisiona, auto-sugiere numeración y bloquea Apply hasta resolver.
-- NO escribe sidecars (decisión owner 28-oct-2026: `rename_log.csv` eliminado, las carpetas del user quedan limpias). El resumen vive en el panel de la app.
-- Output: archivos renombrados según modo salida §FR-8 (copia o in-place).
-- Error: nombre resultante >180 chars o vacío -> bloquea fila + explica.
-- Verificación: AC-4. Ejemplo crítico owner: `snare_03.wav` + suffix `@producer` MUST dar `snare_03_@producer.wav`, NO `snare@producer03.wav`.
+**FR-4 Bulk rename with preview + producer tag append (standalone)**
+- Input: N selected files (1..10000), chosen operation.
+- Behavior: MUST support these 5 combinable ops in v1, in fixed order:
+  1. `Clean`: trim, collapse spaces, replace spaces with `_`, strip Windows-illegal `<>:"/\|?*` chars.
+  2. `Replace text`: find `old` -> `new` (case-insensitive toggle).
+  3. `Add prefix`: `PACK_` or custom.
+  4. `Add suffix (append tag)`: concatenated to the stem WITHOUT touching the base. E.g. `Kick_Trap_01` + suffix `@shardbeats` -> `Kick_Trap_01_@shardbeats`. MUST sanitize with `@` allowed but spaces in the suffix converted to `_`. Default OFF.
+  5. `Numerate`: `_{001}` with eligible start/padding, only on collision or on user request.
+- MUST show an `Before -> After` preview table before applying, with collisions in red.
+- MUST never allow two identical outputs in the same folder; on collision it auto-suggests numbering and blocks Apply until resolved.
+- Writes no sidecars (owner decision 28-oct-2026: `rename_log.csv` removed, user folders stay clean). The summary lives in the app panel.
+- APPLY asks for confirmation with a count (`N files (mode)?` + scope + destination, default No); with no selection it warns that ALL listed files are touched.
+- Output: renamed files per the §FR-8 output mode (copy or in-place).
+- Error: resulting name >180 chars or empty -> row blocked + explained.
+- Verification: AC-4. Critical owner example: `snare_03.wav` + suffix `@producer` MUST yield `snare_03_@producer.wav`, NOT `snare@producer03.wav`.
 
-**FR-5 [DEGRADADO v1 — solo hint pasivo, sin auto-move] Clasificación por keyword (sin IA)**
-- Input: archivo inventariado.
-- Behavior v1: `guess_category()` keyword en filename + parent folder SOLO alimenta la columna informativa `Category?` del queue. NO hay `Aplicar sugerencias` bulk, NO mueve archivos, NO bloquea nada. Sin match -> `Unsorted` (cola de revisión manual).
-- Prohibido v1: detección por contenido audio, score de confianza, auto-clasificación en carpetas (ver Backlog).
-- Verificación: AC-5 (solo display, ver §6).
+**FR-5 [DEGRADED v1 — passive hint only, no auto-move] Keyword classification (no AI)**
+- Input: inventoried file.
+- Behavior v1: `guess_category()` on filename + parent folder keywords ONLY feeds the informational `Category?` queue column. NO bulk `Apply suggestions`, NO file moves, NO blocking. No match -> `Unsorted` (manual review queue).
+- Forbidden v1: audio-content detection, confidence scores, auto-sort into folders (see Backlog).
+- Verification: AC-5 (display only, see §6).
 
-### MÓDULO C — TOOL CONVERTER independiente (hereda 100% TRAKKCONVERTER)
+### MODULE C — TOOL CONVERTER standalone (100% TRAKKCONVERTER heritage)
 
-**FR-6 Conversión batch a SP-404MK2 WAV (standalone)**
-- Input: archivos FR-1 seleccionados en Tab Converter, target sample_rate seleccionado (`48000 default nativo SP-404`, opcional `44100 legacy`), bit_depth fijo `16-bit` v1, canales `stereo` v1 (mono se upmixa a stereo salvo toggle `Keep mono`).
-- Behavior: MUST correr standalone con su propio START, sin requerir FR-4 ni FR-7. MUST usar `ffmpeg_bin()/ffprobe_bin()` con resolución `sys._MEIPASS` si bundle else PATH (heredado). Probe JSON `ffprobe -v error -show_streams -show_format -of json`. Si `already_at_target` MUST copiar. Si no MUST `ffmpeg -y -i in -ar RATE -ac 2 -sample_fmt s16 -c:a pcm_s16le out_sp.wav`. MUST preservar estructura según FR-8 propio del tab. MUST sufijo `_sp.wav`. MUST 2 workers paralelos (como NORMALIZER).
-- Input: archivos FR-1, target sample_rate seleccionado (`48000 default nativo SP-404`, opcional `44100 legacy`), bit_depth fijo `16-bit` v1, canales `stereo` v1 (mono se upmixa a stereo salvo toggle `Keep mono`).
-- Behavior: MUST usar `ffmpeg_bin()/ffprobe_bin()` con resolución `sys._MEIPASS` si bundle else PATH (heredado). Probe JSON `ffprobe -v error -show_streams -show_format -of json`. Si `already_at_target` MUST copiar. Si no MUST `ffmpeg -y -i in -ar RATE -ac 2 -sample_fmt s16 -c:a pcm_s16le out_sp.wav`. MUST preservar estructura según FR-7. MUST sufijo `_sp.wav`. MUST 2 workers paralelos (como NORMALIZER).
-- Spec table soportada (solo informativa, no re-validar en v1): rates `16000,22050,32000,44100,48000,88200,96000,176400,192000`, depth `16/24`, ch `1/2`, codec `pcm_s16le/s24le + be`, container `WAV`.
-- Output: WAVs uniformes + reporte.
-- Error: ffmpeg missing -> error fatal con instrucciones PATH; archivo corrupto -> skip + log.
-- Verificación: AC-6 (ffprobe check rate/ch/codec).
+**FR-6 Batch conversion to SP-404MK2 WAV (standalone)**
+- Input: FR-1 files selected in the Converter tab, selected target sample_rate (`48000 SP-404 native default`, optional `44100 legacy`), fixed `16-bit` bit depth v1, `stereo` channels v1 (mono upmixes to stereo unless the `Keep mono` toggle is set).
+- Behavior: MUST run standalone with its own START, requiring neither FR-4 nor FR-7. MUST use `ffmpeg_bin()/ffprobe_bin()` resolving `sys._MEIPASS` when bundled else PATH (heritage). Probe JSON `ffprobe -v error -show_streams -show_format -of json`. When `already_at_target` MUST copy. Otherwise MUST `ffmpeg -y -i in -ar RATE -ac 2 -sample_fmt s16 -c:a pcm_s16le out_sp.wav`. MUST preserve structure per its own FR-8 tab. MUST append `_sp.wav`. MUST use 2 parallel workers (like NORMALIZER).
+- Reference-only supported spec table (not re-validated in v1): rates `16000,22050,32000,44100,48000,88200,96000,176400,192000`, depth `16/24`, ch `1/2`, codec `pcm_s16le/s24le + be`, container `WAV`.
+- Output: uniform WAVs + report.
+- Error: missing ffmpeg -> fatal error with PATH instructions; corrupt file -> skip + log.
+- Verification: AC-6 (ffprobe rate/ch/codec check).
 
-### MÓDULO D — TOOL NORMALIZER independiente (hereda 100% TRAKKNORMALIZER)
+### MODULE D — TOOL NORMALIZER standalone (100% TRAKKNORMALIZER heritage)
 
-**FR-7 Normalización peak por archivo propio (standalone)**
-- Input: archivos seleccionados en Tab Normalizer (directos del disco, NO requiere pasar por Converter), `Target peak dB default -1.0`, `Skip if within default 0.5dB`.
-- Behavior: MUST correr standalone con su propio START. MUST medir `max_volume` con `ffmpeg -i in -af volumedetect -f null -`, parsear. Si `|target - measured| <= tolerance` MUST skip. Si no MUST aplicar `volume=+XdB` lineal preservando rate/depth: `ffmpeg -y -i in -af volume=+XdB -c:a pcm_s16le out_N.wav` (o s24 si input 24 y toggle). MUST sufijo `_N.wav`. MUST 2 workers.
-- Si el usuario encadena manualmente Convert y luego Normalize: `kick.wav -> kick_sp.wav -> kick_sp_N.wav` (doble sufijo trazable). Si solo normaliza: `kick.wav -> kick_N.wav`.
-- Input: archivos (post-conversión o directos), `Target peak dB default -1.0`, `Skip if within default 0.5dB`.
-- Behavior: MUST medir `max_volume` con `ffmpeg -i in -af volumedetect -f null -`, parsear. Si `|target - measured| <= tolerance` MUST skip. Si no MUST aplicar `volume=+XdB` lineal preservando rate/depth: `ffmpeg -y -i in -af volume=+XdB -c:a pcm_s16le out_N.wav` (o s24 si input 24 y toggle). MUST sufijo `_N.wav`. MUST 2 workers.
-- Si cadena Convert+Normalize activa: `kick.wav -> kick_sp.wav -> kick_sp_N.wav` (doble sufijo trazable). Si solo normaliza: `kick.wav -> kick_N.wav`.
-- Output: archivos normalizados.
-- Error: `max_volume: n/a/-inf` (silencio) -> skip + log `silent`.
-- Verificación: AC-7.
+**FR-7 Per-file peak normalization (standalone)**
+- Input: files selected in the Normalizer tab (straight from disk, NOT required to pass through the Converter), `Target peak dB default -1.0`, `Skip if within default 0.5dB`.
+- Behavior: MUST run standalone with its own START. MUST measure `max_volume` with `ffmpeg -i in -af volumedetect -f null -` and parse it. When `|target - measured| <= tolerance` MUST skip. Otherwise MUST apply linear `volume=+XdB` preserving rate/depth: `ffmpeg -y -i in -af volume=+XdB -c:a pcm_s16le out_N.wav` (or s24 for 24-bit input with the toggle). MUST append `_N.wav`. MUST use 2 workers.
+- Manual Convert-then-Normalize chaining: `kick.wav -> kick_sp.wav -> kick_sp_N.wav` (traceable double suffix). Normalize-only: `kick.wav -> kick_N.wav`.
+- Output: normalized files.
+- Error: `max_volume: n/a/-inf` (silence) -> skip + `silent` log.
+- Verification: AC-7.
 
-### MÓDULO E — Shared Salida / Folder management (librería usada por las 3 tools)
+### MODULE E — Shared Output / Folder management (library used by all 3 tools)
 
-**FR-8 Modos de salida por-tab: Mirror / Next-to-source / In-place controlado**
-- Input (por cada tab Organizer/Converter/Normalizer por separado): output folder propio (vacío = next-to-source), checkbox `Preserve structure default ON`, radio `Mode: Copy (default seguro) | Overwrite/In-place`.
-- Behavior (idéntico en las 3 tabs, no compartido el valor: cada tab recuerda su propio output/mode):
-  - Con output folder + Preserve ON: MUST recrear `output/<pack>/<subfolders>/...` (herencia CONVERTER).
-  - Sin output folder + Preserve ON: MUST crear `<source>_sp` y `<source>_N` o `<source>_trakk` para organizer puro next-to-source.
-  - Preserve OFF: MUST guardar flat en output folder (aplana, con numeración anti-colisión).
-  - Mode Copy (default): MUST nunca borrar originales.
-  - Mode Overwrite/In-place (explícito + confirm dialog con conteo): MUST permitir reemplazo solo tras éxito verificado (output existe + size>0 + ffprobe ok), luego borra/renombra original según operación. Para rename puro in-place MUST operar directo.
-- Output: archivos en destino. Sin sidecars (decisión owner 28-oct-2026: carpetas del user siempre limpias).
-- Error: sin espacio disco (estimado `input_bytes*1.8 + 100MB`) -> bloquea START.
-- Verificación: AC-8.
+**FR-8 Per-tab output modes: Mirror / Next-to-source / Controlled in-place**
+- Input (per Organizer/Converter/Normalizer tab separately): own output folder (empty = next-to-source), `Preserve structure default ON` checkbox, `Mode: Copy (safe default) | Overwrite/In-place` radio.
+- Behavior (identical in all 3 tabs, values not shared: each tab remembers its own output/mode):
+  - With output folder + Preserve ON: MUST recreate `output/<pack>/<subfolders>/...` (CONVERTER heritage).
+  - Without output folder + Preserve ON: MUST create `<source>_sp` and `<source>_N`, or `<source>_trakk` for pure organizer, next-to-source.
+  - Preserve OFF: MUST save flat into the output folder (flattened, with anti-collision numbering).
+  - Copy mode (default): MUST never delete originals.
+  - Overwrite/In-place mode (explicit + count confirm dialog): MUST allow replacement only after verified success (output exists + size>0 + ffprobe ok), then delete/rename the original per operation. Pure in-place rename MUST operate directly.
+- Output: files at destination. No sidecars (owner decision 28-oct-2026: user folders always clean).
+- Error: no disk space (estimate `input_bytes*1.8 + 100MB`) -> blocks START.
+- Verification: AC-8.
 
-**FR-9 Resumen en UI + SQLite persistente**
-- Input: batch terminado.
-- Behavior: MUST mantener `library.db` con estados `pending/done/skipped/failed`. MUST mostrar resumen `copiados/convertidos/normalizados/renombrados/skipeados/fallidos` en el panel de log + popup. NO escribe `process_report.csv` (eliminado con los sidecars).
-- Output: DB consultable + resumen visible.
-- Verificación: AC-9.
+**FR-9 In-UI summary + persistent SQLite**
+- Input: finished batch.
+- Behavior: MUST keep `library.db` with `pending/done/skipped/failed` states. MUST show a `copied/converted/normalized/renamed/skipped/failed` summary in the log panel + popup. Does NOT write `process_report.csv` (removed with the sidecars).
+- Output: queryable DB + visible summary.
+- Verification: AC-9.
 
 ---
 
-## 4. No-Funcionales
+## 4. Non-Functionals
 
-- **NFR-1 Plataforma:** Windows 10/11 64-bit primero. Source run Python 3.10+. Exe portable vía PyInstaller one-file.
-- **NFR-2 Offline:** Cero llamadas red en critical path. FFmpeg/ffprobe locales. DB local `%APPDATA%/TRAKKSTUDIO/` o junto a exe en portable.
-- **NFR-3 Performance v1 (medido en SSD i5/8GB):** scan 1000 archivos <60s; convert 1000 one-shots cortos (<10s c/u) <25min en 2 threads; rename preview 5000 filas <3s. Máx archivo 500MB, máx batch 10000 archivos.
-- **NFR-4 Storage:** Nunca duplica sin permiso en Copy mode se avisa tamaño. Estimación pre-run obligatoria. Exe final ~100-130MB (Qt+FFmpeg) documentado + nota falso-positivo antivirus.
-- **NFR-5 Privacidad:** Sin telemetría. Paths nunca salen del PC. Logs locales.
-- **NFR-6 Robustez:** Cancel button mata child ffmpeg. Engine puro sin Qt (`engine.py`) testeable. GUI solo llama engine.
-- **NFR-7 Convenciones código:** Inglés-only identifiers/comments/commits. Estructura estándar: `main.py gui.py engine.py converter.py normalizer.py organizer.py db.py build_exe.py start.bat run.bat requirements.txt styles.qss tests/ docs/SRS.md README.md MAINTENANCE.md`.
-
----
-
-## 5. UX Scope — Multitool 2 columnas (files izq + tools der) + brand ámbar
-
-**Layout v1 congelado (QSplitter horizontal, owner 27-oct-2026):**
-- **Header brand:** `TRAKKSTUDIO` 19px bold + subtítulo ámbar `SHARDBEATS TRAKK SUITE — ORGANIZE / CONVERT / NORMALIZE` + footer gris.
-- **Top bar común:** Add folder (Ctrl+O) / Add files / Clear (Del) + contador `X files / Y packs / Z GB` + warning admin (sin drag&drop).
-- **Izquierda (tall):** grupo `FILES` con tabla `File (stretch) | Folder (220px) | Category? hint pasivo FR-5 (110px)`, tooltips con path completo, selección por filas.
-- **Derecha (2x ancho):** tabs independientes:
-- **Tab 1 ORGANIZER:** preset único `sp404_splice` + Create, inputs verticales Prefix/Suffix/Old/New a ancho completo, checks `Whole name (=New)` + `Numerate`, `Copy to output` default OFF (= in-place rename), tabla preview `Before/After (stretch) | Error (220px)` + `APPLY RENAME` ámbar + resumen en el panel.
-- **Tab 2 CONVERTER:** sample_rate dropdown (48k/44.1k), Force-to-rate toggle, keep-mono toggle, columna `copy/convert/skip` (FR-2), su propio output+mode + `START CONVERT`/`Cancel` + progress + resumen en el panel.
-- **Tab 3 NORMALIZER:** target peak (-1.0), tolerance (0.5), replace-original toggle (solo next-to-source, herencia), su propio output+mode + `START NORMALIZE`/`Cancel` + progress + resumen en el panel.
-
-NO hay botón START global. NO hay wizard que obligue a pasar por los 3.
-
-**Empty states:** sin archivos -> ilustración texto "Arrastra tu drumkit aquí". Sin output -> hint "<source>_trakk al lado del origen".
-
-**Error states:** banner rojo ffmpeg missing, warning amarillo admin-mode, tabla colisiones rename en rojo bloqueante.
-
-**Shortcuts v1:** `Ctrl+O` add folder, `Ctrl+R` preview rename, `Space` START/Cancel, `Del` remove selected.
-
-**Tema:** dark `styles.qss` heredado TRAKK (reusar).
+- **NFR-1 Platform:** Windows 10/11 64-bit first. Source runs on Python 3.10+. Portable exe via PyInstaller one-file.
+- **NFR-2 Offline:** Zero network calls on the critical path. Local FFmpeg/ffprobe. Local DB at `%APPDATA%/TRAKKSTUDIO/` or next to the exe when portable.
+- **NFR-3 v1 Performance (measured on i5/8GB SSD):** 1000-file scan <60s; 1000 short one-shot converts (<10s each) <25min on 2 threads; 5000-row rename preview <3s. Max file 500MB, max batch 10000 files.
+- **NFR-4 Storage:** Never duplicates without permission; Copy mode warns about size. Mandatory pre-run estimate. Final exe ~100-130MB (Qt+FFmpeg) documented + antivirus false-positive note.
+- **NFR-5 Privacy:** No telemetry. Paths never leave the PC. Local logs.
+- **NFR-6 Robustness:** Cancel button kills the child ffmpeg. Pure engine without Qt (`engine.py`) for testability. GUI only calls the engine.
+- **NFR-7 Code conventions:** English-only identifiers/comments/commits. Standard layout: `main.py gui.py engine.py converter.py normalizer.py organizer.py db.py build_exe.py start.bat run.bat requirements.txt styles.qss tests/ docs/SRS.md README.md MAINTENANCE.md`.
 
 ---
 
-## 6. Acceptance Criteria (cada FR mapeado a check ejecutable)
+## 5. UX Scope — Multitool 2 columns (files left + tools right) + amber brand
 
-- **AC-0 (FR-0 independencia):** cargar 10 files, correr SOLO Tab Normalizer -> existen 10x `_N.wav`, cero `_sp.wav`, cero renames. Repetir SOLO Converter y SOLO Organizer. `pytest tests/test_independence.py -q` green.
-- **AC-1 (FR-1):** Arrastrar carpeta test `demo_pack/Drums/Kick/k1.wav,k2.mp3` -> inventario muestra 2 filas agrupadas bajo header `demo_pack`, DB tiene 2 rows. `pytest tests/test_scan.py::test_group_by_source -q` green.
-- **AC-2 (FR-2):** Archivo `x_sp.wav` a 48k stereo MUST marcar `skip`. `y_44k.wav` con target 48k + Force ON MUST marcar `convert`. Test `test_classifier_rules`.
-- **AC-3 (FR-3):** Preset único `sp404_splice` en carpeta vacía MUST crear 16 paths exactos (Kicks, 808s_Bass, FX_Textures, Favorites, Oneshots/Drums, Loops/BPM_120, Artwork, MIDI...). `pytest tests/test_organizer.py -q` green + `dir /s` manual.
-- **AC-4 (FR-4):** Seleccionar 3 files + suffix `@producer` -> preview muestra `*_@producer.wav`, sin colisión, Apply genera files y cero `*.csv` junto a los samples. Test `test_bulk_suffix_append`.
-- **AC-5 (FR-5 degradado):** `808_glide_C.wav` muestra `808s_Bass` y `mystery_xyz.wav` muestra `Unsorted` en columna informativa. No mueve nada. Test `test_guess_category`.
-- **AC-6 (FR-6):** Convertir tono `mp3 44.1k` -> output `_sp.wav` y `ffprobe -show_streams` MUST dar `sample_rate=48000, channels=2, codec_name=pcm_s16le`. Test e2e `test_convert_tone`.
-- **AC-7 (FR-7):** Tono -6dB peak + target -1dB -> output `_N.wav` con `max_volume ≈ -1.0 ±0.3dB` medido con volumedetect. Tono ya en -1.0 ±0.5 MUST skip. Test `test_normalize_gain`.
-- **AC-8 (FR-8):** Sin output folder + Preserve ON MUST crear `<source>_trakk/` espejo. Con output + Preserve OFF MUST aplanar sin duplicados. Overwrite mode MUST pedir confirm + solo borrar tras ffprobe ok. Test `test_output_resolver`.
-- **AC-9 (FR-9):** Tras batch el panel muestra counts que cuadran con ok/skip/fail y `library.db` los persiste. Sin CSVs en carpetas del user.
+**Frozen v1 layout (horizontal QSplitter, owner 27-oct-2026):**
+- **Brand header:** `TRAKKSTUDIO` 19px bold + amber subtitle `SHARDBEATS TRAKK SUITE — ORGANIZE / CONVERT / NORMALIZE` + gray footer.
+- **Common top bar:** Add folder (Ctrl+O) / Add files / Clear (Del) + Play/Stop preview + `X files / Y packs / Z GB` counter + admin warning (no drag&drop).
+- **Left (tall):** `FILES` group with `File (stretch) | Folder (pack/sub) | Category? passive FR-5 hint` table, full-path tooltips, row selection. Double-click plays the sample (audio-only ffplay); selecting another row cuts the running preview.
+- **Right (2x wide):** independent tabs:
+- **Tab 1 ORGANIZER:** single `sp404_splice` preset + Create, full-width vertical Prefix/Suffix/Old/New inputs, `Whole name (=New)` + `Numerate` checks, `Copy to output` default OFF (= in-place rename), `Before/After (stretch) | Error` preview table + amber `APPLY RENAME` (asks with file count) + panel summary.
+- **Tab 2 CONVERTER:** sample_rate dropdown (48k/44.1k), Force-to-rate toggle, keep-mono toggle, `copy/convert/skip` column (FR-2), own output+mode + `START CONVERT (Space)`/`Cancel` + progress + panel summary.
+- **Tab 3 NORMALIZER:** target peak (-1.0), tolerance (0.5), replace-original toggle (next-to-source only, heritage), own output+mode + `START NORMALIZE (Space)`/`Cancel` + progress + panel summary.
 
-**Gate release v1:** `pytest -q` green (mín 60 tests, tonos generados on-the-fly, skip si no ffmpeg), `start.bat` funciona en máquina limpia, `python build_exe.py` produce `dist/TRAKKSTUDIO.exe` portable con ffmpeg+ffprobe bundlados.
+NO global START button. NO wizard forcing all 3 steps.
 
----
+**Empty states:** no files -> "Drag your drumkit here" text illustration. No output -> "<source>_trakk next to source" hint.
 
-## 7. Milestones (estado 2026-10-28)
+**Error states:** red ffmpeg-missing banner, yellow admin-mode warning, blocking red rename-collision table.
 
-- **[DONE] M0 Spec:** SRS v1.0 CONGELADO. Owner aprobó nombre TRAKKSTUDIO + preset único + suffix `@producer`.
-- **[DONE] Sprint 1 — Engine puro (sin GUI):** `db.py + organizer.py + converter.py + normalizer.py` + 45 tests. Done = `pytest -q` green + CLI `main.py --scan/--preset`.
-- **[DONE] Sprint 2 — GUI:** 2 columnas (FILES izq + 3 tabs der, splitter), `styles.qss` ámbar heritage, rename in-place + Whole name + Numerate. Done = drag&drop 100+ files legibles.
-- **[DONE] Build 2:** exe con QSS bundlado (`--add-data` + `resource_path()`), cero sidecars. Pusheado + tag `v1.0`. Pendiente: test en otro PC.
-- **[TODO] MVP v1.0:** USB test pack real 500 files sin pérdida ni sidecars → tag + release.
-- **Backlog v1.1+:** reporte opcional a %APPDATA%, undo rename, keep-mono toggle, 24-bit toggle, LUFS mode, export Splice ZIP con artwork, detector BPM/key, icono `icon.ico`, FR-5 v2.
+**Shortcuts v1:** `Ctrl+O` add folder, `Ctrl+R` rename preview, `Space` START/Cancel of the visible tab (never while typing), `Del` remove selected, `F1` quick tour, double-click plays the sample.
+
+**First run:** one-time 3-step tour dialog (flag at `%APPDATA%/TRAKKSTUDIO/.welcomed`, reopen in Help).
+
+**Theme:** dark heritage `styles.qss` (reuse).
 
 ---
 
-## 8. Decisiones congeladas para v1 (freeze 2026-10-27)
+## 6. Acceptance Criteria (each FR mapped to an executable check)
 
-1. Nombre: **TRAKKSTUDIO multitool (3 tabs independientes)**.
-2. Sufijos heritage se mantienen por tool: `_sp` solo Converter, `_N` solo Normalizer, `_@tag` solo Organizer append. Solo si el usuario encadena manualmente se combinan ej: `Kick_01_@producer_sp_N.wav`.
-3. Defaults por tab: Organizer `in-place` (Copy OFF); Converter/Normalizer `Mode=Copy`, `Preserve=ON`, Converter `Force to rate=ON`, `48kHz/16-bit/stereo`, Normalizer `Target -1.0dB / Tol 0.5dB`.
-4. In-place rename directo (sin confirm extra); overwrite convert/normalize solo tras ffprobe OK.
-5. Preset único `sp404_splice` (16 paths, fusión SP-404 + Splice). Resto de presets eliminados.
-6. FR-5 degradado a hint pasivo. Sin detección por contenido en v1.
-7. Layout 2 columnas (files izq + tools der) con splitter + brand ámbar `#F5A623` heritage. Sin iconos en v1.
-8. Cero sidecars: ni `rename_log.csv` ni `process_report_*.csv` junto a los samples (owner 28-oct-2026). Resumen solo en UI + DB.
-9. No hay START global. Cada tab tiene su START/Cancel.
+- **AC-0 (FR-0 independence):** load 10 files, run ONLY the Normalizer tab -> 10x `_N.wav` exist, zero `_sp.wav`, zero renames. Repeat for Converter-only and Organizer-only. `pytest tests/test_independence.py -q` green.
+- **AC-1 (FR-1):** drag test folder `demo_pack/Drums/Kick/k1.wav,k2.mp3` -> inventory shows 2 rows grouped under the `demo_pack` header, DB holds 2 rows. `pytest tests/test_scan.py::test_group_by_source -q` green.
+- **AC-2 (FR-2):** file `x_sp.wav` at 48k stereo MUST mark `skip`. File `y_44k.wav` with 48k target + Force ON MUST mark `convert`. Test `test_classifier_rules`.
+- **AC-3 (FR-3):** single `sp404_splice` preset into an empty folder MUST create the exact 16 paths (Kicks, 808s_Bass, FX_Textures, Favorites, Oneshots/Drums, Loops/BPM_120, Artwork, MIDI...). `pytest tests/test_organizer.py -q` green + manual `dir /s`.
+- **AC-4 (FR-4):** select 3 files + suffix `@producer` -> preview shows `*_@producer.wav`, no collision, Apply produces files and zero `*.csv` next to samples. Test `test_bulk_suffix_append`.
+- **AC-5 (FR-5 degraded):** `808_glide_C.wav` shows `808s_Bass` and `mystery_xyz.wav` shows `Unsorted` in the informational column. Moves nothing. Test `test_guess_category`.
+- **AC-6 (FR-6):** convert `mp3 44.1k` tone -> `_sp.wav` output and `ffprobe -show_streams` MUST report `sample_rate=48000, channels=2, codec_name=pcm_s16le`. E2e test `test_convert_tone`.
+- **AC-7 (FR-7):** -6dB-peak tone + -1dB target -> `_N.wav` output with `max_volume ≈ -1.0 ±0.3dB` measured via volumedetect. Tone already at -1.0 ±0.5 MUST skip. Test `test_normalize_gain`.
+- **AC-8 (FR-8):** no output folder + Preserve ON MUST create a `<source>_trakk/` mirror. With output + Preserve OFF MUST flatten without duplicates. Overwrite mode MUST confirm + only delete after ffprobe ok. Test `test_output_resolver`.
+- **AC-9 (FR-9):** after a batch the panel shows counts matching ok/skip/fail and `library.db` persists them. No CSVs in user folders.
 
-## 9. Backlog (no hacer en v1)
-
-- FR-5 v2: dict ampliado + duración + confianza + auto-move (solo si owner lo re-pide).
-- Detección por contenido espectral FFmpeg opt-in (lowpass/highpass ratio).
-- Deduplicación por hash audio (solo sha parcial en v1).
-- Packs ZIP in/out.
-- Favoritos hybrid auto-copy.
-- Soporte MPC 8-char naming.
-- Firma código para evitar flag antivirus.
-- Icono `icon.ico/png` + `make_icon.py` (diseño aprobado: waveform 3 grupos ámbar).
+**v1 release gate:** `pytest -q` green (65 tests, on-the-fly generated tones, skip without ffmpeg), `start.bat` works on a clean machine, `python build_exe.py` produces a portable `dist/TRAKKSTUDIO.exe` with bundled ffmpeg+ffprobe+ffplay.
 
 ---
-**Freeze v1:** Aprobado por owner en chat 2026-10-27. Cambios posteriores van a v1.1 con CHANGELOG.
+
+## 7. Milestones (status 2026-11-02)
+
+- **[DONE] M0 Spec:** SRS v1.0 FROZEN. Owner approved the TRAKKSTUDIO name + single preset + `@producer` suffix.
+- **[DONE] Sprint 1 — Pure engine (no GUI):** `db.py + organizer.py + converter.py + normalizer.py` + green tests. Done = `pytest -q` green + `main.py --scan/--preset` CLI.
+- **[DONE] Sprint 2 — GUI:** 2 columns (FILES left + 3 tabs right, splitter), heritage amber `styles.qss`, in-place rename + Whole name + Numerate. Done = 100+ legible drag&dropped files.
+- **[DONE] Build 2:** 210MB exe with bundled QSS (`--add-data` + `resource_path()`), zero sidecars. Pushed + tag `v1.0`.
+- **[DONE] Icon:** option C (3 amber layers), `make_icon.py` + bundled in exe.
+- **[DONE] Installer:** per-user Inno Setup 6 + silent smoke (install/scan/GUI/uninstall).
+- **[DONE] Guide:** window Space router, Help menu, first-run tour, About, `APP_VERSION` single-source.
+- **[DONE] Preview:** ffplay audio preview (double-click/Play/Stop, auto-cut on select) + stale-finished guard.
+- **[DONE] Safety:** APPLY confirm with count.
+- **[DONE] English-only:** code + docs in English for international users.
+- **[TODO] MVP v1.0:** real 500-file USB pack test with no loss or sidecars → tag + release.
+- **Backlog v1.1+:** `%APPDATA%` optional report, undo rename, keep-mono toggle, 24-bit toggle, LUFS mode, Splice ZIP export with artwork, BPM/key detection, FR-5 v2.
+
+---
+
+## 8. Frozen v1 decisions (freeze 2026-10-27)
+
+1. Name: **TRAKKSTUDIO multitool (3 independent tabs)**.
+2. Heritage suffixes stay per tool: `_sp` Converter-only, `_N` Normalizer-only, `_@tag` Organizer-append-only. Only manual chaining combines them, e.g. `Kick_01_@producer_sp_N.wav`.
+3. Per-tab defaults: Organizer `in-place` (Copy OFF); Converter/Normalizer `Mode=Copy`, `Preserve=ON`, Converter `Force to rate=ON`, `48kHz/16-bit/stereo`, Normalizer `Target -1.0dB / Tol 0.5dB`.
+4. Direct in-place rename (no extra confirm); overwrite convert/normalize only after ffprobe OK. APPLY asks with a file count.
+5. Single `sp404_splice` preset (16 paths, SP-404 + Splice merge). All other presets removed.
+6. FR-5 degraded to passive hint. No content detection in v1.
+7. 2-column layout (files left + tools right) with splitter + heritage amber `#F5A623` brand. No icons in v1 (icon added post-freeze: option C).
+8. Zero sidecars: neither `rename_log.csv` nor `process_report_*.csv` next to samples (owner 28-oct-2026). Summary in UI + DB only.
+9. No global START. Each tab has its own START/Cancel.
+
+## 9. Backlog (not in v1)
+
+- FR-5 v2: wider dict + duration + confidence + auto-move (only if owner re-requests).
+- Opt-in spectral content detection via FFmpeg (lowpass/highpass ratio).
+- Audio-hash deduplication (partial sha only in v1).
+- ZIP packs in/out.
+- Hybrid auto-copy favorites.
+- MPC 8-char naming support.
+- Code signing against antivirus flags.
+- BPM/key detector.
+- LUFS mode.
+
+---
+**v1 Freeze:** Approved by owner in chat 2026-10-27. Later changes target v1.1 with a CHANGELOG entry.
