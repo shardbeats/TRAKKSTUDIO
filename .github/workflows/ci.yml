@@ -1,0 +1,23 @@
+# TRAKKSTUDIO CI: full suite on Windows per push (offscreen Qt, no FFmpeg needed —
+# engine e2e tests skip gracefully without it, like TRAKKART's fast job).
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:  # manual run from the Actions tab
+
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install deps
+        run: pip install -r requirements.txt -r requirements-dev.txt
+      - name: Suite (offscreen)
+        run: python -m pytest tests -q -p no:cacheprovider
+        env:
+          QT_QPA_PLATFORM: offscreen
