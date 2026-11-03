@@ -46,7 +46,7 @@ class SamplePlayer(QObject):
         if exe is None or not Path(path).is_file():
             return False
         proc = QProcess(self)
-        proc.finished.connect(self._on_finished)
+        proc.finished.connect(lambda *a, p=proc: self._on_proc_finished(p))
         proc.start(exe, ["-nodisp", "-autoexit", "-loglevel", "quiet", str(path)])
         if not proc.waitForStarted(3000):
             proc.deleteLater()
@@ -66,7 +66,12 @@ class SamplePlayer(QObject):
             proc.deleteLater()
         self.stopped.emit()
 
-    def _on_finished(self) -> None:
+    def _on_proc_finished(self, proc: QProcess) -> None:
+        # Identity guard: a late 'finished' from a killed preview must never
+        # wipe the process that replaced it (kill + immediate replay race).
+        if proc is not self._proc:
+            proc.deleteLater()
+            return
         self._proc = None
         self._current = ""
         self.stopped.emit()

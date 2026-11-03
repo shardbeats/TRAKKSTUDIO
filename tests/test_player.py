@@ -104,3 +104,39 @@ def test_stop_button_and_clear_stop_player(win, monkeypatch):
     win.btnStop.click()
     win.clear_all()
     assert len(stops) == 2
+
+
+def test_selecting_another_row_cuts_preview(win, tmp_path, monkeypatch):
+    f1, f2 = tmp_path / "a.wav", tmp_path / "b.wav"
+    f1.write_bytes(b"RIFF....")
+    f2.write_bytes(b"RIFF....")
+    win.files = [f1, f2]
+    win.refresh_queue()
+    stops = []
+    playing = {"on": False}
+    monkeypatch.setattr(win.player, "is_playing", lambda: playing["on"])
+    monkeypatch.setattr(win.player, "stop",
+                        lambda: (stops.append(True), playing.__setitem__("on", False)))
+    win.queue.selectRow(0)
+    assert stops == []
+    playing["on"] = True  # preview running…
+    win.queue.selectRow(1)  # …pick another row: cut, no Stop needed
+    assert stops == [True]
+
+
+def test_stale_finished_never_wipes_new_process(app):
+    from types import SimpleNamespace
+
+    pl = SamplePlayer()
+    fired = []
+    pl.stopped.connect(lambda: fired.append(True))
+    old = SimpleNamespace(deleteLater=lambda: None)
+    new = SimpleNamespace(deleteLater=lambda: None)
+    pl._proc = new
+    pl._current = "new.wav"
+    pl._on_proc_finished(old)  # late signal from the killed preview
+    assert pl._proc is new and pl._current == "new.wav"
+    assert fired == []
+    pl._on_proc_finished(new)
+    assert pl._proc is None and pl.current() == ""
+    assert fired == [True]

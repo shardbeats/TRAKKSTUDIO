@@ -76,7 +76,8 @@ def tour_text() -> str:
         "START NORMALIZE (Space). Output: *_N.wav.\n\n"
         "Each tab is independent with its own START/Cancel. "
         "Drag & drop folders anytime (Ctrl+O). Space never fires while typing.\n\n"
-        "Double-click any row (or Play) to listen — audio preview, Stop to cut it."
+        "Double-click any row (or Play) to listen — audio preview, Stop to cut it. "
+        "Clicking another row cuts the running preview by itself."
     )
 
 
@@ -265,6 +266,7 @@ class MainWindow(QMainWindow):
         self.btnPlay.clicked.connect(self.play_selected)
         self.btnStop.clicked.connect(self.player.stop)
         self.queue.cellDoubleClicked.connect(self._play_row)
+        self.queue.itemSelectionChanged.connect(self._on_queue_selection_changed)
         self._setup_shortcuts()
         self._setup_help_menu()
         if welcome:
@@ -386,6 +388,11 @@ class MainWindow(QMainWindow):
         ordered = sorted(self.files)
         if 0 <= row < len(ordered):
             self._play(ordered[row])
+
+    def _on_queue_selection_changed(self):
+        # Picking another row cuts the running preview — no Stop needed.
+        if self.player.is_playing():
+            self.player.stop()
 
     def _play(self, path: Path):
         if self.player.play(path):
