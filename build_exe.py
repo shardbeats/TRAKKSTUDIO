@@ -36,7 +36,5 @@ for doc in ("LICENSE", "NOTICE.md", "THIRD-PARTY-NOTICES.md"):
         print(f"bundling {p}")
 for a in adds:
     args.append(a)
-if icon.exists():
-    args += ["--icon", str(icon)]
 print(" ".join(args))
 P.run(args)
