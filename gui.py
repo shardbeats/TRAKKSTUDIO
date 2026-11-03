@@ -1,4 +1,4 @@
-"""TRAKKSTUDIO GUI — multitool 3 tabs independientes + top bar comun (PySide6)."""
+"""TRAKKSTUDIO GUI — multitool with 3 independent tabs + shared top bar (PySide6)."""
 from __future__ import annotations
 
 import ctypes
@@ -465,9 +465,9 @@ class MainWindow(QMainWindow):
         v = QVBoxLayout(g2)
         # Vertical: un campo por fila a ancho completo para nombres largos
         self.edPrefix = QLineEdit()
-        self.edPrefix.setPlaceholderText("prefix (ej PACK)")
+        self.edPrefix.setPlaceholderText("prefix (e.g. PACK)")
         self.edSuffix = QLineEdit()
-        self.edSuffix.setPlaceholderText("suffix tag (ej @producer) — se concatena sin tocar base")
+        self.edSuffix.setPlaceholderText("suffix tag (e.g. @producer) — appended without touching base")
         self.edOld = QLineEdit(); self.edOld.setPlaceholderText("replace old")
         self.edNew = QLineEdit(); self.edNew.setPlaceholderText("replace new")
         for label, field in (("Prefix:", self.edPrefix), ("Suffix:", self.edSuffix),
@@ -479,7 +479,7 @@ class MainWindow(QMainWindow):
             v.addLayout(row)
         r2 = QHBoxLayout()
         self.chkWhole = QCheckBox("Whole name (=New)")
-        self.chkWhole.setToolTip("ON = borra todo el nombre y usa New completo. Auto-activa Numerate si hay >1 archivo para evitar colisiones.")
+        self.chkWhole.setToolTip("ON = wipes the whole name and uses New as-is. Auto-enables Numerate with >1 file to avoid collisions.")
         self.chkNumerate = QCheckBox("Numerate _{001}")
         self.spinNum = QSpinBox(); self.spinNum.setRange(0, 99999); self.spinNum.setValue(1)
         r2.addWidget(self.chkWhole)
@@ -491,7 +491,7 @@ class MainWindow(QMainWindow):
         self.btnPreviewRn.setShortcut("Ctrl+R")
         self.rbOrgCopy = QCheckBox("Copy to output (keep originals)")
         self.rbOrgCopy.setChecked(False)
-        self.rbOrgCopy.setToolTip("OFF = rename in-place (renombra originales). ON = copia con nuevo nombre a output folder.")
+        self.rbOrgCopy.setToolTip("OFF = rename in-place (touches originals). ON = copy with new name to output folder.")
         self.edOrgOut = QLineEdit(); self.edOrgOut.setPlaceholderText("output folder (only if Copy checked, else in-place)")
         self.btnOrgBrowse = QPushButton("Browse")
         self.btnOrgBrowse.setObjectName("browseBtn")
@@ -548,7 +548,7 @@ class MainWindow(QMainWindow):
         old, new = self.edOld.text(), self.edNew.text()
         whole = self.chkWhole.isChecked()
         if whole and not new.strip():
-            QMessageBox.warning(self, "Whole name", "Escribe el nombre completo en New.")
+            QMessageBox.warning(self, "Whole name", "Type the full name in New.")
             return
         if whole and len(files) > 1 and not self.chkNumerate.isChecked():
             self.chkNumerate.setChecked(True)
@@ -569,9 +569,9 @@ class MainWindow(QMainWindow):
             if p.dst_name != p.src.name:
                 changed += 1
             self.tblRn.setItem(i, 2, it)
-        msg = f"{len(self._pairs)} preview, {changed} cambian, {blocked} blocked"
+        msg = f"{len(self._pairs)} preview, {changed} change, {blocked} blocked"
         if old and changed == 0 and not blocked:
-            msg += f" — Replace '{old}' no encontrado en ningun nombre (revisa espacios/guiones/mayusculas)"
+            msg += f" — Replace '{old}' not found in any name (check spaces/dashes/case)"
         elif not blocked:
             msg += " — ready to APPLY"
         else:
@@ -593,13 +593,13 @@ class MainWindow(QMainWindow):
             return
         sel_rows = {ix.row() for ix in self.queue.selectedIndexes()}
         if sel_rows:
-            scope = f"{len(sel_rows)} seleccionados de {len(self.files)} en lista."
+            scope = f"{len(sel_rows)} selected of {len(self.files)} in list."
         else:
-            scope = f"Sin selección: se tocan TODOS ({len(self.files)} en lista)."
-        dest = f"Destino: {out}" if out else "In-place (renombra originales)."
+            scope = f"No selection: touches ALL ({len(self.files)} in list)."
+        dest = f"Destination: {out}" if out else "In-place (renames originals)."
         ans = QMessageBox.question(
-            self, "Confirmar rename",
-            f"Renombrar {len(self._pairs)} archivos ({mode})?\n{scope}\n{dest}",
+            self, "Confirm rename",
+            f"Rename {len(self._pairs)} files ({mode})?\n{scope}\n{dest}",
             QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
         if ans != QMessageBox.Yes:
             return
@@ -717,7 +717,7 @@ class MainWindow(QMainWindow):
     def _norm_tab(self):
         w = QWidget()
         lay = QVBoxLayout(w)
-        g = QGroupBox("Normalizer peak propio (standalone — FR-7)")
+        g = QGroupBox("Normalizer per-file peak (standalone — FR-7)")
         v = QVBoxLayout(g)
         r = QHBoxLayout()
         self.spinTarget = QDoubleSpinBox(); self.spinTarget.setRange(-60, 0); self.spinTarget.setValue(-1.0); self.spinTarget.setSingleStep(0.5)
@@ -744,7 +744,7 @@ class MainWindow(QMainWindow):
         self.logNorm = QTextEdit(); self.logNorm.setMaximumHeight(140); self.logNorm.setReadOnly(True)
         v.addWidget(self.logNorm)
         lay.addWidget(g)
-        hint = QLabel("Cada clip a su propio peak (linear gain). `_N.wav` se skipea. Silencio → skip + log.")
+        hint = QLabel("Each clip to its own peak (linear gain). `_N.wav` is skipped. Silence → skip + log.")
         hint.setObjectName("statusLabel")
         hint.setWordWrap(True)
         lay.addWidget(hint)

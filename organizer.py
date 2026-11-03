@@ -109,13 +109,13 @@ def preview_rename(
     clean: bool = True,
     replace_whole: bool = False,
 ) -> list[RenamePair]:
-    """Pure preview Antes->Despues. Never touches disk.
+    """Pure preview Before->After. Never touches disk.
 
     Order (fixed): Replace on RAW stem first, then Clean once.
     So Old='Kick 01' (as seen in Explorer) matches before spaces become _.
-    replace_whole=True: ignora Old, borra todo el stem y usa New completo
-    (luego aplican prefix/suffix/numerate). Util para renombrar pack entero
-    a un nombre base ej New='hhat' -> hhat_001, hhat_002...
+    replace_whole=True: ignores Old, wipes the whole stem and uses New as-is
+    (then prefix/suffix/numerate apply). Handy to rename a whole pack
+    to a base name e.g. New='hhat' -> hhat_001, hhat_002...
     """
     pairs: list[RenamePair] = []
     n = numerate_from

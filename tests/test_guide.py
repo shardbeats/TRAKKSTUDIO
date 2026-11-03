@@ -172,7 +172,7 @@ def test_apply_confirm_names_scope(win, tmp_path, monkeypatch):
 
     monkeypatch.setattr(QMessageBox, "question", fake_question)
     win.do_apply_rn()  # no selection: warns about ALL
-    assert "2 archivos" in seen["text"] and "TODOS" in seen["text"]
+    assert "2 files" in seen["text"] and "ALL" in seen["text"]
     win.queue.selectRow(0)
     win.do_apply_rn()  # selection: names the subset
-    assert "1 seleccionados de 2" in seen["text"]
+    assert "1 selected of 2" in seen["text"]
