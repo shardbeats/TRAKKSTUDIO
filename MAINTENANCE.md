@@ -2,7 +2,7 @@
 
 ## Versionar (1 min)
 
-1. Sube versión en `gui.py` footer (`v1.X`) y en este archivo.
+1. Sube `APP_VERSION` en `gui.py` (footer + About la leen de ahí) y `STABLE_VERSION` en `build_installer.py` si hay installer.
 2. Agrega entrada en `CHANGELOG.md` (Added/Fixed/Changed + fecha).
 3. `pytest tests -q` en verde antes de commitear.
 

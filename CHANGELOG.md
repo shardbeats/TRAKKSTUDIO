@@ -1,5 +1,12 @@
 # CHANGELOG — TRAKKSTUDIO
 
+## [Unreleased]
+
+### Added
+- Guía y atajos: Space de ventana rutea al tab visible (START Convert/Normalize, Preview rename, Cancel si hay batch; nunca mientras escribes), menú Help (Quick tour F1, Keyboard shortcuts, About), tour de bienvenida solo en primer arranque (`%APPDATA%/TRAKKSTUDIO/.welcomed`, revívelo en Help).
+- `APP_VERSION` single-source en `gui.py` (footer + About la leen de ahí).
+- Tests: `tests/test_guide.py` (7 tests offscreen). Suite 45 → 52.
+
 ## [v1.0] — 2026-11-02 (build 2 + installer, tag v1.0)
 
 ### Added

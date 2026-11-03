@@ -2,17 +2,20 @@
 from __future__ import annotations
 
 import ctypes
+import os
 import shutil
 import sys
 import time
 from pathlib import Path
 
 from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtGui import QKeySequence, QShortcut
 from PySide6.QtWidgets import (
-    QApplication, QCheckBox, QComboBox, QDoubleSpinBox, QFileDialog,
+    QApplication, QCheckBox, QComboBox, QDialog, QDoubleSpinBox, QFileDialog,
     QGroupBox, QHBoxLayout, QLabel, QLineEdit, QListWidget, QMainWindow,
     QMessageBox, QPushButton, QProgressBar, QSpinBox, QTabWidget,
     QTableWidget, QTableWidgetItem, QTextEdit, QVBoxLayout, QWidget,
+    QAbstractSpinBox,
 )
 
 import converter as C
@@ -47,6 +50,59 @@ def is_admin() -> bool:
         return bool(ctypes.windll.shell32.IsUserAnAdmin())
     except Exception:
         return False
+
+
+APP_VERSION = "1.0"
+
+SHORTCUTS: list[tuple[str, str]] = [
+    ("Ctrl+O", "Add folder"),
+    ("Ctrl+R", "Preview rename (tab 1)"),
+    ("Space", "START / Cancel current tab (never while typing)"),
+    ("Del", "Clear file list"),
+    ("F1", "Quick tour"),
+]
+
+
+def tour_text() -> str:
+    return (
+        "TRAKKSTUDIO in 3 steps:\n\n"
+        "1 · ORGANIZER rename — pick files (or all), set Prefix/Suffix/Old/New, "
+        "Preview rename (Ctrl+R), check After, then APPLY. In-place by default.\n\n"
+        "2 · CONVERTER SP-404 — pick rate (48k native), Preview actions "
+        "(copy/convert/skip), START CONVERT (Space). Output: *_sp.wav.\n\n"
+        "3 · NORMALIZER peak — set Target (-1.0dB) and tolerance, "
+        "START NORMALIZE (Space). Output: *_N.wav.\n\n"
+        "Each tab is independent with its own START/Cancel. "
+        "Drag & drop folders anytime (Ctrl+O). Space never fires while typing."
+    )
+
+
+def about_text() -> str:
+    return (
+        f"TRAKKSTUDIO v{APP_VERSION}\n"
+        "Offline multitool for beatmakers · ShardBeats TRAKK SUITE\n"
+        "\n"
+        "MIT licensed (see LICENSE + NOTICE.md + THIRD-PARTY-NOTICES.md).\n"
+        "Portable and offline: inventory lives in %APPDATA%/TRAKKSTUDIO/library.db."
+    )
+
+
+def welcomed_path() -> Path:
+    base = os.environ.get("APPDATA") or str(Path.home())
+    return Path(base) / "TRAKKSTUDIO" / ".welcomed"
+
+
+def is_first_run() -> bool:
+    return not welcomed_path().is_file()
+
+
+def mark_welcomed() -> None:
+    try:
+        p = welcomed_path()
+        p.parent.mkdir(parents=True, exist_ok=True)
+        p.write_text("v1\n", encoding="utf-8")
+    except OSError:
+        pass
 
 
 def fmt_bytes(n: int) -> str:
@@ -95,7 +151,7 @@ class BatchThread(QThread):
 
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, welcome: bool = True):
         super().__init__()
         self.setWindowTitle("TRAKKSTUDIO — Organizer / Converter / Normalizer")
         self.resize(1080, 720)
@@ -173,7 +229,7 @@ class MainWindow(QMainWindow):
         split.setChildrenCollapsible(False)
         lay.addWidget(split, 1)
 
-        self.lblFooter = QLabel("SHARDBEATS TRAKK SUITE · portable · offline · v1.0")
+        self.lblFooter = QLabel(f"SHARDBEATS TRAKK SUITE · portable · offline · v{APP_VERSION}")
         self.lblFooter.setObjectName("footerLabel")
         lay.addWidget(self.lblFooter)
 
@@ -190,6 +246,69 @@ class MainWindow(QMainWindow):
         self.btnClear.clicked.connect(self.clear_all)
         self.btnClear.setShortcut("Del")
         self.btnAddFolder.setShortcut("Ctrl+O")
+        self._setup_shortcuts()
+        self._setup_help_menu()
+        if welcome:
+            self._maybe_welcome()
+
+    # ---- guide: shortcuts + help menu + first-run tour ----
+    def _setup_shortcuts(self):
+        # Window-level Space routes to the visible tab. Button-level Space
+        # is banned: it also fires while typing spaces in the rename fields.
+        sc = QShortcut(QKeySequence("Space"), self)
+        sc.setContext(Qt.WindowShortcut)
+        sc.activated.connect(self._on_space)
+
+    def _on_space(self):
+        fw = QApplication.focusWidget()
+        if isinstance(fw, (QLineEdit, QTextEdit, QAbstractSpinBox, QComboBox)):
+            return  # never steal keystrokes while typing
+        if self.thread and self.thread.isRunning():
+            self.do_cancel()
+            return
+        idx = self.tabs.currentIndex()
+        if idx == 0:
+            self.do_preview_rn()
+        elif idx == 1:
+            self.do_start_conv()
+        else:
+            self.do_start_norm()
+
+    def _setup_help_menu(self):
+        m = self.menuBar().addMenu("Help")
+        a_tour = m.addAction("Quick tour…")
+        a_tour.setShortcut("F1")
+        a_tour.triggered.connect(lambda: self.show_tour())
+        a_keys = m.addAction("Keyboard shortcuts…")
+        a_keys.triggered.connect(self.show_shortcuts)
+        m.addSeparator()
+        a_about = m.addAction("About TRAKKSTUDIO…")
+        a_about.triggered.connect(self.show_about)
+
+    def _maybe_welcome(self):
+        if is_first_run():
+            mark_welcomed()
+            self.show_tour()
+
+    def show_tour(self):
+        box = QDialog(self)
+        box.setWindowTitle("TRAKKSTUDIO — Quick tour")
+        lay = QVBoxLayout(box)
+        lab = QLabel(tour_text())
+        lab.setWordWrap(True)
+        lab.setMinimumWidth(460)
+        lay.addWidget(lab)
+        btn = QPushButton("Start organizing")
+        btn.clicked.connect(box.accept)
+        lay.addWidget(btn)
+        box.exec()
+
+    def show_shortcuts(self):
+        lines = "\n".join(f"{k:10s}  {desc}" for k, desc in SHORTCUTS)
+        QMessageBox.information(self, "Keyboard shortcuts", lines)
+
+    def show_about(self):
+        QMessageBox.about(self, "About TRAKKSTUDIO", about_text())
 
     # ---- shared queue ----
     def dragEnterEvent(self, e):
@@ -452,7 +571,6 @@ class MainWindow(QMainWindow):
         self.btnPrevConv = QPushButton("Preview actions")
         self.btnStartConv = QPushButton("START CONVERT (Space)")
         self.btnStartConv.setObjectName("convertBtn")
-        self.btnStartConv.setShortcut("Space")
         self.btnCancelConv = QPushButton("Cancel")
         self.barConv = QProgressBar()
         r3.addWidget(self.btnPrevConv); r3.addWidget(self.btnStartConv); r3.addWidget(self.btnCancelConv); r3.addWidget(self.barConv, 1)
@@ -550,7 +668,7 @@ class MainWindow(QMainWindow):
         r2.addWidget(self.edNormOut, 1); r2.addWidget(self.btnNormBrowse); r2.addWidget(self.chkNormPreserve)
         v.addLayout(r2)
         r3 = QHBoxLayout()
-        self.btnStartNorm = QPushButton("START NORMALIZE")
+        self.btnStartNorm = QPushButton("START NORMALIZE (Space)")
         self.btnStartNorm.setObjectName("convertBtn")
         self.btnCancelNorm = QPushButton("Cancel")
         self.barNorm = QProgressBar()

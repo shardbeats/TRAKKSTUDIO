@@ -23,8 +23,19 @@
 ## Quick start (3 pasos)
 
 1. Doble clic `start.bat` (crea `.venv`, instala, abre el GUI).
-2. Arrastra tu drumkit a FILES (izquierda).
-3. Ve al tab que necesites → Preview → START. Ej: Tab 1, Old `Closed Hat` New `hhat` → Preview → APPLY.
+2. Primer arranque: tour de 3 pasos (revívelo en Help → Quick tour, F1).
+3. Arrastra tu drumkit a FILES (izquierda).
+4. Ve al tab que necesites → Preview → START. Ej: Tab 1, Old `Closed Hat` New `hhat` → Preview → APPLY.
+
+## Shortcuts
+
+| Atajo | Acción |
+|---|---|
+| `Ctrl+O` | Add folder |
+| `Ctrl+R` | Preview rename (tab 1) |
+| `Space` | START / Cancel del tab visible (nunca mientras escribes) |
+| `Del` | Clear file list |
+| `F1` | Quick tour |
 
 ## Manual setup (devs)
 
