@@ -22,7 +22,7 @@
 
 ## Quick start (4 steps)
 
-1. Double-click `start.bat` (creates `.venv`, installs, opens the GUI).
+1. Double-click `start.bat` (creates `.venv`, installs, opens the GUI). Later runs: `run.bat` (uses the existing `.venv`).
 2. First launch: 3-step tour (reopen in Help → Quick tour, F1).
 3. Drag your drumkit onto FILES (left).
 4. Go to the tab you need → Preview → START. E.g. Tab 1, Old `Closed Hat` New `hhat` → Preview → APPLY.
