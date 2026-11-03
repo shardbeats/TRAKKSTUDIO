@@ -50,7 +50,7 @@ python -m venv .venv
 
 1. Add folder/files o drag&drop (si corre como Admin, Windows bloquea el arrastre: reabre normal).
 2. (Solo rename) Tab 1: elige preset `sp404_splice` → Create structure si necesitas carpetas.
-3. (Solo rename) Tab 1: Prefix/Suffix/Old/New + Whole/Numerate → Preview rename → revisa After → APPLY (in-place default; marca Copy solo si quieres conservar originales en otro folder).
+3. (Solo rename) Tab 1: Prefix/Suffix/Old/New + Whole/Numerate → Preview rename → revisa After → APPLY (in-place default; marca Copy solo si quieres conservar originales en otro folder; confirma con conteo y avisa si tocas TODOS sin selección).
 4. (Solo convertir) Tab 2: rate 48000, Force-to-rate ON → Preview actions (`copy/convert/skip`) → START CONVERT.
 5. (Solo normalizar) Tab 3: Target -1.0, Tol 0.5 → START NORMALIZE.
 6. Resultado esperado: `Closed Hat (8).wav` → rename `hhat_(8).wav` → convert `hhat_(8)_sp.wav` (48k/stereo) → normalize `hhat_(8)_sp_N.wav` (-1dB). Cada paso es opcional y muestra su resumen en el panel. Tus carpetas quedan limpias: cero CSVs ni sidecars.

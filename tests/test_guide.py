@@ -103,3 +103,76 @@ def test_maybe_welcome_shows_once(win, monkeypatch):
     win._maybe_welcome()
     win._maybe_welcome()
     assert shown == [True]
+
+
+def _wav_pair(tmp_path):
+    fs = []
+    for n in ("kick.wav", "snare.wav"):
+        p = tmp_path / n
+        p.write_bytes(b"RIFF....")
+        fs.append(p)
+    return fs
+
+
+def _stub_modals(monkeypatch, answer):
+    from PySide6.QtWidgets import QMessageBox
+
+    monkeypatch.setattr(QMessageBox, "question", lambda *a, **k: answer)
+    monkeypatch.setattr(QMessageBox, "information", lambda *a, **k: None)
+    return QMessageBox
+
+
+def test_apply_confirm_yes_renames(win, tmp_path, monkeypatch):
+    from organizer import preview_rename
+
+    fs = _wav_pair(tmp_path)
+    win.files = list(fs)
+    win.refresh_queue()
+    win._pairs = preview_rename(fs, prefix="", suffix_tag="@t",
+                                replace_old="", replace_new="",
+                                replace_whole=False, numerate_from=None)
+    QB = _stub_modals(monkeypatch, None)
+    monkeypatch.setattr(QB, "question", lambda *a, **k: QB.Yes)
+    win.do_apply_rn()
+    assert (tmp_path / "kick_@t.wav").is_file()
+    assert (tmp_path / "snare_@t.wav").is_file()
+
+
+def test_apply_confirm_no_aborts(win, tmp_path, monkeypatch):
+    from organizer import preview_rename
+
+    fs = _wav_pair(tmp_path)
+    win.files = list(fs)
+    win.refresh_queue()
+    win._pairs = preview_rename(fs, prefix="", suffix_tag="@t",
+                                replace_old="", replace_new="",
+                                replace_whole=False, numerate_from=None)
+    QB = _stub_modals(monkeypatch, None)
+    monkeypatch.setattr(QB, "question", lambda *a, **k: QB.No)
+    win.do_apply_rn()
+    assert (tmp_path / "kick.wav").is_file()
+    assert (tmp_path / "snare.wav").is_file()
+
+
+def test_apply_confirm_names_scope(win, tmp_path, monkeypatch):
+    from organizer import preview_rename
+
+    fs = _wav_pair(tmp_path)
+    win.files = list(fs)
+    win.refresh_queue()
+    win._pairs = preview_rename(fs, prefix="", suffix_tag="@t",
+                                replace_old="", replace_new="",
+                                replace_whole=False, numerate_from=None)
+    seen = {}
+    from PySide6.QtWidgets import QMessageBox
+
+    def fake_question(*a, **k):
+        seen["text"] = a[2]
+        return QMessageBox.No
+
+    monkeypatch.setattr(QMessageBox, "question", fake_question)
+    win.do_apply_rn()  # no selection: warns about ALL
+    assert "2 archivos" in seen["text"] and "TODOS" in seen["text"]
+    win.queue.selectRow(0)
+    win.do_apply_rn()  # selection: names the subset
+    assert "1 seleccionados de 2" in seen["text"]

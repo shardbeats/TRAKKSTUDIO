@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Added
+- Confirm de APPLY con conteo: antes de renombrar pregunta `N archivos (modo)?` + alcance (`N seleccionados de M` o aviso `TODOS`) + destino; default No. Frena el accidente de renombrar el pack entero.
 - Playback preview: doble-click en cualquier fila (o Play) escucha el sample vía ffplay audio-only (`-nodisp -autoexit`); Stop lo corta; `build_exe.py` bundla `ffplay.exe` para que el portable suene. Sin modales: sin binario avisa en el label.
 - Preview auto-cut: al seleccionar otra fila se corta la reproducción en curso sin tocar Stop; `finished` tardío de un preview matado nunca borra al proceso nuevo (guard por identidad).
 - Tests: `tests/test_player.py` (8 tests, playback real con tonos). Suite 52 → 60.

@@ -591,6 +591,18 @@ class MainWindow(QMainWindow):
         if mode == "copy" and out is None:
             QMessageBox.warning(self, "Need output", "Copy mode needs an output folder.")
             return
+        sel_rows = {ix.row() for ix in self.queue.selectedIndexes()}
+        if sel_rows:
+            scope = f"{len(sel_rows)} seleccionados de {len(self.files)} en lista."
+        else:
+            scope = f"Sin selección: se tocan TODOS ({len(self.files)} en lista)."
+        dest = f"Destino: {out}" if out else "In-place (renombra originales)."
+        ans = QMessageBox.question(
+            self, "Confirmar rename",
+            f"Renombrar {len(self._pairs)} archivos ({mode})?\n{scope}\n{dest}",
+            QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+        if ans != QMessageBox.Yes:
+            return
         done, errs = apply_rename(self._pairs, mode=mode, output_dir=out)
         self.lblOrg.setText(f"done {done}, errors {len(errs)}")
         if errs:
