@@ -17,6 +17,17 @@ for exe in ("ffmpeg.exe", "ffprobe.exe"):
 
 icon = root / "icon.ico"
 args = ["--onefile", "--windowed", "--name", "TRAKKSTUDIO", str(root / "main.py")]
+qss = root / "styles.qss"
+if qss.exists():
+    args += ["--add-data", f"{qss};."]
+    print(f"bundling {qss}")
+else:
+    print("WARN missing styles.qss: exe will use native theme")
+for doc in ("LICENSE", "NOTICE.md", "THIRD-PARTY-NOTICES.md"):
+    p = root / doc
+    if p.is_file():
+        args += ["--add-data", f"{p};."]
+        print(f"bundling {p}")
 for a in adds:
     args.append(a)
 if icon.exists():
