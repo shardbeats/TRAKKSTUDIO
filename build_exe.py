@@ -23,6 +23,12 @@ if qss.exists():
     print(f"bundling {qss}")
 else:
     print("WARN missing styles.qss: exe will use native theme")
+icon = root / "icon.ico"
+if icon.exists():
+    args += ["--icon", str(icon), "--add-data", f"{icon};."]
+    print(f"bundling {icon}")
+else:
+    print("WARN missing icon.ico: exe will use default PyInstaller icon")
 for doc in ("LICENSE", "NOTICE.md", "THIRD-PARTY-NOTICES.md"):
     p = root / doc
     if p.is_file():
