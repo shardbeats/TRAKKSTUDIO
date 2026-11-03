@@ -46,7 +46,7 @@ Encadenar tools (ej: Rename -> Convert -> Normalize) es posible manualmente reut
 
 ### 2.2 Non-Goals v1 (van a Backlog, NO se hacen en sprint 1)
 - NG-1: No hay auto-tag por IA / detección de key/BPM por audio. Solo inferencia por nombre de archivo/carpeta + metadatos ffprobe.
-- NG-2: No hay preview con playback con efectos, ni edizione de waveform, ni chop/slice.
+- NG-2: No hay preview con efectos, ni edizione de waveform, ni chop/slice. (Audio-only preview sí: doble-click/Play vía ffplay, sin ventana.)
 - NG-3: No hay loudness LUFS global del pack, ni compresión, ni fades correctivos de loops (solo se documenta si el loop clickea).
 - NG-4: No hay cloud, login, telemetría, auto-update server, ni base de datos en red.
 - NG-5: No hay soporte video (ese es otro módulo TRAKK).

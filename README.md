@@ -26,6 +26,7 @@
 2. Primer arranque: tour de 3 pasos (revívelo en Help → Quick tour, F1).
 3. Arrastra tu drumkit a FILES (izquierda).
 4. Ve al tab que necesites → Preview → START. Ej: Tab 1, Old `Closed Hat` New `hhat` → Preview → APPLY.
+5. Doble-click en cualquier fila (o Play) para escucharla; Stop corta.
 
 ## Shortcuts
 
@@ -62,6 +63,7 @@ TRAKKSTUDIO/
 ├── main.py            # entry: GUI default, CLI con flags
 ├── gui.py             # 2 columnas: FILES izq + 3 tabs der
 ├── organizer.py       # scan/structure/bulk-rename (sin FFmpeg)
+├── player.py          # preview audio vía ffplay (doble-click/Play/Stop)
 ├── converter.py       # herencia TRAKKCONVERTER (SP-404)
 ├── normalizer.py      # herencia TRAKKNORMALIZER (peak)
 ├── db.py              # SQLite library.db (stdlib)

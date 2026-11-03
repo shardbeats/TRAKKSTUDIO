@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Added
+- Playback preview: doble-click en cualquier fila (o Play) escucha el sample vía ffplay audio-only (`-nodisp -autoexit`); Stop lo corta; `build_exe.py` bundla `ffplay.exe` para que el portable suene. Sin modales: sin binario avisa en el label.
+- Tests: `tests/test_player.py` (8 tests, playback real con tonos). Suite 52 → 60.
 - Guía y atajos: Space de ventana rutea al tab visible (START Convert/Normalize, Preview rename, Cancel si hay batch; nunca mientras escribes), menú Help (Quick tour F1, Keyboard shortcuts, About), tour de bienvenida solo en primer arranque (`%APPDATA%/TRAKKSTUDIO/.welcomed`, revívelo en Help).
 - `APP_VERSION` single-source en `gui.py` (footer + About la leen de ahí).
 - Tests: `tests/test_guide.py` (7 tests offscreen). Suite 45 → 52.

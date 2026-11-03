@@ -25,6 +25,7 @@ from organizer import (
     preview_rename, scan_to_rows,
 )
 from db import upsert_files
+from player import SamplePlayer, ffplay_bin
 
 
 def resource_path(name: str) -> Path:
@@ -60,6 +61,7 @@ SHORTCUTS: list[tuple[str, str]] = [
     ("Space", "START / Cancel current tab (never while typing)"),
     ("Del", "Clear file list"),
     ("F1", "Quick tour"),
+    ("Dbl-click", "Play sample under cursor"),
 ]
 
 
@@ -73,7 +75,8 @@ def tour_text() -> str:
         "3 · NORMALIZER peak — set Target (-1.0dB) and tolerance, "
         "START NORMALIZE (Space). Output: *_N.wav.\n\n"
         "Each tab is independent with its own START/Cancel. "
-        "Drag & drop folders anytime (Ctrl+O). Space never fires while typing."
+        "Drag & drop folders anytime (Ctrl+O). Space never fires while typing.\n\n"
+        "Double-click any row (or Play) to listen — audio preview, Stop to cut it."
     )
 
 
@@ -178,11 +181,20 @@ class MainWindow(QMainWindow):
         self.btnAddFolder = QPushButton("Add folder  (Ctrl+O)")
         self.btnAddFiles = QPushButton("Add files")
         self.btnClear = QPushButton("Clear  (Del)")
+        self.btnPlay = QPushButton("Play")
+        self.btnPlay.setToolTip("Play selected (or first) sample — audio preview via ffplay")
+        self.btnStop = QPushButton("Stop")
+        self.btnStop.setToolTip("Stop playback")
+        self.lblPlay = QLabel("")
+        self.lblPlay.setObjectName("statusLabel")
         self.lblCount = QLabel("0 files — drag & drop folders here")
         self.lblCount.setObjectName("statusLabel")
         top.addWidget(self.btnAddFolder)
         top.addWidget(self.btnAddFiles)
         top.addWidget(self.btnClear)
+        top.addWidget(self.btnPlay)
+        top.addWidget(self.btnStop)
+        top.addWidget(self.lblPlay)
         top.addWidget(self.lblCount, 1)
         lay.addLayout(top)
 
@@ -246,6 +258,13 @@ class MainWindow(QMainWindow):
         self.btnClear.clicked.connect(self.clear_all)
         self.btnClear.setShortcut("Del")
         self.btnAddFolder.setShortcut("Ctrl+O")
+        self.player = SamplePlayer(self)
+        self.player.started.connect(self._on_play_started)
+        self.player.stopped.connect(self._on_play_stopped)
+        QApplication.instance().aboutToQuit.connect(self.player.stop)
+        self.btnPlay.clicked.connect(self.play_selected)
+        self.btnStop.clicked.connect(self.player.stop)
+        self.queue.cellDoubleClicked.connect(self._play_row)
         self._setup_shortcuts()
         self._setup_help_menu()
         if welcome:
@@ -351,8 +370,37 @@ class MainWindow(QMainWindow):
         self.refresh_queue()
 
     def clear_all(self):
+        self.player.stop()
         self.files = []
         self.refresh_queue()
+
+    # ---- playback preview (ffplay audio-only, never modal) ----
+    def play_selected(self):
+        files = self.selected_or_all()
+        if not files:
+            self.lblPlay.setText("nothing to play — add files first")
+            return
+        self._play(files[0])
+
+    def _play_row(self, row: int, _col: int):
+        ordered = sorted(self.files)
+        if 0 <= row < len(ordered):
+            self._play(ordered[row])
+
+    def _play(self, path: Path):
+        if self.player.play(path):
+            return
+        if ffplay_bin() is None:
+            self.lblPlay.setText("ffplay missing — install FFmpeg on PATH (portable exe brings it)")
+        else:
+            self.lblPlay.setText(f"cannot play {Path(path).name}")
+
+    def _on_play_started(self, path: str):
+        self.lblPlay.setText(f"▶ {Path(path).name}")
+
+    def _on_play_stopped(self):
+        if not self.player.is_playing():
+            self.lblPlay.setText("")
 
     def refresh_queue(self):
         self.queue.setRowCount(len(self.files))

@@ -6,7 +6,7 @@ their own licenses, in source runs AND inside the frozen exe.
 | Component | License | Notes |
 |---|---|---|
 | PySide6 + Qt | LGPLv3 | GUI toolkit. https://www.qt.io + https://pypi.org/project/PySide6/ |
-| FFmpeg + FFprobe (system PATH in dev, `--add-binary` bundled in exe) | LGPLv2.1+ | Converter + normalizer backends. https://ffmpeg.org/download.html |
+| FFmpeg + FFprobe + ffplay (system PATH in dev, `--add-binary` bundled in exe) | LGPLv2.1+ | Converter + normalizer backends + audio-only preview. https://ffmpeg.org/download.html |
 | Python stdlib (sqlite3) | PSF | `library.db` scan/history. |
 
 Build tool only: PyInstaller (GPLv2 with bootloader exception),
