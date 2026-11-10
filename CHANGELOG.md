@@ -1,5 +1,12 @@
 # CHANGELOG — TRAKKSTUDIO
 
+## [v1.0.2] - 2026-11-10
+
+### Changed
+- Portable is now a one-dir ZIP (`TRAKKSTUDIO-portable-<version>.zip`): unzip once, instant startup, **no per-launch extraction** to `%TMP%`. The installer installs the same one-dir build.
+- Removed the one-file build (`build_exe.py`); use `build_portable.py`.
+- Docs/MAINTENANCE updated to the new build flow.
+
 ## [v1.0.1] - 2026-11-10
 
 ### Fixed
@@ -11,7 +18,7 @@
 
 ### Added
 - APPLY confirm with count: before renaming it asks `N files (mode)?` + scope (`N selected of M` or `ALL` warning) + destination; default No. Kills the whole-pack accident.
-- Audio preview: double-click any row (or Play) listens to the sample via audio-only ffplay (`-nodisp -autoexit`); Stop cuts it; `build_exe.py` bundles `ffplay.exe` so the portable plays sound. No modals: missing binary warns in the label.
+- Audio preview: double-click any row (or Play) listens to the sample via audio-only ffplay (`-nodisp -autoexit`); Stop cuts it; `build_portable.py` bundles `ffplay.exe` so the portable plays sound. No modals: missing binary warns in the label.
 - Preview auto-cut: selecting another row cuts the running playback without touching Stop; a late `finished` from a killed preview never wipes the new process (identity guard).
 - Guide & shortcuts: window Space routes to the visible tab (START Convert/Normalize, Preview rename, Cancel on running batch; never while typing), Help menu (Quick tour F1, Keyboard shortcuts, About), first-run-only welcome tour (`%APPDATA%/TRAKKSTUDIO/.welcomed`, reopen in Help).
 - `APP_VERSION` single-source in `gui.py` (footer + About read it from there).

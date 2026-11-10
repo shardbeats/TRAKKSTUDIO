@@ -1,6 +1,6 @@
-"""Build the TRAKKSTUDIO installer (Inno Setup), separately from the portable exe.
+"""Build the TRAKKSTUDIO installer (Inno Setup), separately from the portable ZIP.
 
-Portable:  python build_exe.py
+Portable:  python build_portable.py
 Installer: python build_installer.py
 
 Version: STABLE_VERSION below (must match the footer in gui.py).
@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 
-STABLE_VERSION = "1.0.1"
+STABLE_VERSION = "1.0.2"
 
 
 def _which_in(candidate: str) -> str | None:
@@ -20,10 +20,13 @@ def _which_in(candidate: str) -> str | None:
 
 
 def main() -> int:
-    exe = ROOT / "dist" / "TRAKKSTUDIO.exe"
+    exe = ROOT / "dist" / "portable" / "TRAKKSTUDIO" / "TRAKKSTUDIO.exe"
     if not exe.is_file():
-        print(f"[installer] missing {exe} — run `python build_exe.py` first.")
-        return 2
+        print("[installer] one-dir build missing; running build_portable.py...")
+        rc = subprocess.call([sys.executable, "build_portable.py"], cwd=str(ROOT))
+        if rc != 0 or not exe.is_file():
+            print("[installer] ERROR: could not build the one-dir app.")
+            return 2
     iss = ROOT / "installer" / "trakkstudio.iss"
     iscc = (
         shutil.which("ISCC")
@@ -38,7 +41,7 @@ def main() -> int:
         return 3
     print("+", iscc, *defines, str(iss))
     subprocess.check_call([iscc, *defines, str(iss)])
-    setup = ROOT / "dist" / f"TRAKKSTUDIO-Setup-{STABLE_VERSION}.exe"
+    setup = ROOT / "dist-installer" / f"TRAKKSTUDIO-Setup-{STABLE_VERSION}.exe"
     if setup.is_file():
         print(f"[installer] {setup.name} ready ({setup.stat().st_size // 1024 // 1024} MB).")
         return 0

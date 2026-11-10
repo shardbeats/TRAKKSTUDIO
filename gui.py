@@ -53,7 +53,7 @@ def is_admin() -> bool:
         return False
 
 
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.0.2"
 
 SHORTCUTS: list[tuple[str, str]] = [
     ("Ctrl+O", "Add folder"),

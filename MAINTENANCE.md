@@ -6,14 +6,20 @@
 2. Add a `CHANGELOG.md` entry (Added/Fixed/Changed + date).
 3. `pytest tests -q` green before committing.
 
-## Rebuild portable exe
+## Rebuild portable ZIP
 
 ```
 .venv\Scripts\python.exe -m pip install pyinstaller
-.venv\Scripts\python.exe build_exe.py
+.venv\Scripts\python.exe build_portable.py
 ```
 
-Lands in `dist/TRAKKSTUDIO.exe` (v1.0 actual: 210MB with FFmpeg 9 full build + Qt6; ~120MB with essentials build) with ffmpeg/ffprobe/ffplay bundled via `--add-binary`. Without `icon.ico` it uses the PyInstaller default. Document real size + antivirus false-positive note in the release.
+Builds a one-dir app in `dist/portable/TRAKKSTUDIO/` and zips it as
+`dist/TRAKKSTUDIO-portable-<version>.zip` (ffmpeg/ffprobe/ffplay inside
+`_internal\`, plus LICENSE/NOTICE/README). One-dir starts instantly; nothing
+is extracted to `%TMP%`. The old one-file build (`build_exe.py`) re-extracted
+~750 MB on every launch and was removed. Without `icon.ico` it uses the
+PyInstaller default. Document real size + antivirus false-positive note in the
+release.
 
 ## Installer (Inno Setup 6)
 
@@ -21,7 +27,11 @@ Lands in `dist/TRAKKSTUDIO.exe` (v1.0 actual: 210MB with FFmpeg 9 full build + Q
 python build_installer.py
 ```
 
-Needs `dist/TRAKKSTUDIO.exe` already built. Lands in `dist/TRAKKSTUDIO-Setup-<version>.exe` (per-user, no admin, EN/ES, with uninstaller). Version in `build_installer.py: STABLE_VERSION` (must match the `gui.py` footer). Unsigned build: SmartScreen will warn on first run.
+Needs the one-dir build in `dist/portable/TRAKKSTUDIO/` already built (the
+script runs `build_portable.py` if missing). Lands in
+`dist-installer/TRAKKSTUDIO-Setup-<version>.exe` (per-user, no admin, EN/ES,
+with uninstaller). Version in `build_installer.py: STABLE_VERSION` (must match
+the `gui.py` footer). Unsigned build: SmartScreen will warn on first run.
 
 ## Local data / backup
 

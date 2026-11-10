@@ -6,7 +6,7 @@
 
 <p align="center"><img src="docs/screenshot.png" alt="TRAKKSTUDIO organizing and converting a drum kit to SP-404MK2 WAV" width="880"></p>
 
-Free and open source (MIT). Portable exe or per-user installer, no account, no telemetry — your audio never leaves your computer.
+Free and open source (MIT). Portable ZIP or per-user installer, no account, no telemetry - your audio never leaves your computer.
 
 
 `Folders/files -> Organize (rename) | Convert (SP-404 WAV) | Normalize (peak) -> Mirror output, summary in panel`
@@ -25,9 +25,9 @@ Free and open source (MIT). Portable exe or per-user installer, no account, no t
 ## Requirements
 
 - Windows 10/11 64-bit, ~300MB free + room for copies (`input×1.8 + 100MB`, the app checks before START).
-- To install: run `TRAKKSTUDIO-Setup-1.0.exe` (per-user, no admin, with uninstaller).
+- To install: run `TRAKKSTUDIO-Setup-1.0.2.exe` (per-user, no admin, with uninstaller).
 - To run from source: Python 3.10+ and FFmpeg on PATH (`ffmpeg -version`).
-- To use the portable: nothing (the `.exe` bundles Qt + FFmpeg, v1.0 actual: 210MB with FFmpeg full build; ~120MB with essentials). Some antiviruses flag PyInstaller one-file builds as false positive.
+- To use the portable: unzip `TRAKKSTUDIO-portable-<version>.zip` once and run `TRAKKSTUDIO\TRAKKSTUDIO.exe`. FFmpeg is included and nothing is extracted on launch (instant startup).
 
 ## Quick start (4 steps)
 
@@ -77,7 +77,7 @@ TRAKKSTUDIO/
 ├── normalizer.py      # TRAKKNORMALIZER heritage (peak)
 ├── db.py              # SQLite library.db (stdlib)
 ├── styles.qss         # heritage amber theme #F5A623
-├── build_exe.py       # PyInstaller one-file + bundled ffmpeg
+├── build_portable.py  # PyInstaller one-dir + portable ZIP (bundled ffmpeg)
 ├── start.bat          # setup + launch
 ├── docs/SRS.md        # frozen spec v1.0
 ├── tests/             # pytest (generated tones, skip without ffmpeg)
@@ -101,8 +101,8 @@ TRAKKSTUDIO/
 | Preview changes nothing | `Old` not found: check spaces/dashes/case; the label says how many change |
 | `BLOCKED: collision` | Enable Numerate or change New |
 | Drag&drop rejected (forbidden cursor) | Running as Admin: reopen normally |
-| `ffmpeg not found` (from source) | Install FFmpeg and add it to PATH; the `.exe` doesn't need it |
-| Antivirus false positive on the `.exe` | Normal for PyInstaller one-file; build it yourself with `python build_exe.py` |
+| `ffmpeg not found` (from source) | Install FFmpeg and add it to PATH; the packaged build doesn't need it |
+| Antivirus false positive on the `.exe` | Normal for PyInstaller builds; build it yourself with `python build_portable.py` |
 | SmartScreen "unknown publisher" | Unsigned build: More info → Run anyway |
 | Out of space | Free `input×1.8 + 100MB`; START blocks before writing |
 | Exe looks white/native | Old build without QSS: use build 2+ (QSS via `--add-data`, see CHANGELOG) |
@@ -148,7 +148,7 @@ Six free, offline tools for beatmakers. They are independent: install only what 
 
 **Is it free?** Yes. MIT licensed, free for personal and commercial use, with no account and no usage limits.
 
-**Do I need Python or FFmpeg installed?** No. The portable `.exe` bundles Qt and FFmpeg. You only need Python 3.10+ and FFmpeg on PATH if you run it from source.
+**Do I need Python or FFmpeg installed?** No. The portable build ships Qt and FFmpeg in its folder. You only need Python 3.10+ and FFmpeg on PATH if you run it from source.
 
 **What does the converter output?** WAV, 48 kHz, 16-bit, stereo PCM by default — the format the SP-404MK2 works with internally. Files already at the target are copied instead of re-encoded.
 
