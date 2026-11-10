@@ -1,5 +1,16 @@
 # TRAKKSTUDIO — Multitool (ShardBeats TRAKK SUITE)
 
+> **Organize, convert to SP-404MK2 WAV and peak-normalize a whole sample library in one window.** Three batch tools, three tabs, each with its own START — no forced pipeline.
+
+**[Download for Windows](https://github.com/shardbeats/TRAKKSTUDIO/releases/latest)** · **[All 6 tools](https://shardbeats.github.io/tools/)** · **[Free beat pack (WAV + stems)](https://shardbeats.github.io/landing/)**
+
+<!-- Screenshot: save the image as docs/screenshot.png, then uncomment this block
+<p align="center"><img src="docs/screenshot.png" alt="TRAKKSTUDIO organizing and converting a drum kit to SP-404MK2 WAV" width="880"></p>
+-->
+
+Free and open source (MIT). Portable exe or per-user installer, no account, no telemetry — your audio never leaves your computer.
+
+
 `Folders/files -> Organize (rename) | Convert (SP-404 WAV) | Normalize (peak) -> Mirror output, summary in panel`
 
 3 independent tools in 1 window (files left, tools right). Each tab has its own START/Cancel and its own summary. No forced pipeline.
@@ -116,3 +127,35 @@ TRAKKSTUDIO/
 ## License
 
 See `LICENSE` (TRAKK SUITE heritage).
+
+## TRAKK SUITE
+
+Six free, offline tools for beatmakers. They are independent: install only what you need, or run three of them from this one window.
+
+| Tool | What it does |
+|---|---|
+| **TRAKKSTUDIO** | Organize, convert and normalize in a single window |
+| [TRAKKCONVERTER](https://github.com/shardbeats/TRAKKCONVERTER) | Sample libraries → WAV for the Roland SP-404MK2 |
+| [TRAKKNORMALIZER](https://github.com/shardbeats/TRAKKNORMALIZER) | Per-clip peak normalization for sample packs |
+| [TRAKKNAME](https://github.com/shardbeats/TRAKKNAME) | Beat title generator (EN/ES, 20 moods) |
+| [TRAKKOUT](https://github.com/shardbeats/TRAKKOUT) | Beat + artwork → 1080p MP4 for YouTube |
+| [TRAKKLICENSE](https://github.com/shardbeats/TRAKKLICENSE) | Beat license contracts as PDF (EN/ES) |
+
+- **Website:** https://shardbeats.github.io/tools/
+- **Free beat pack (WAV + stems):** https://shardbeats.github.io/landing/
+- **Android version of TRAKKNAME:** https://github.com/shardbeats/TRAKKNAME-IONIC
+- **Sound kits:** https://www.beatstars.com/shardbeats/sound-kits
+
+## FAQ
+
+**Is it free?** Yes. MIT licensed, free for personal and commercial use, with no account and no usage limits.
+
+**Do I need Python or FFmpeg installed?** No. The portable `.exe` bundles Qt and FFmpeg. You only need Python 3.10+ and FFmpeg on PATH if you run it from source.
+
+**What does the converter output?** WAV, 48 kHz, 16-bit, stereo PCM by default — the format the SP-404MK2 works with internally. Files already at the target are copied instead of re-encoded.
+
+**How is the normalizer different from a regular normalizer?** It matches every clip to its own peak with linear gain instead of pushing everything up by the same amount, so quiet kicks reach the target without the loud ones clipping.
+
+**Does it work offline?** Yes. Everything is local. Nothing is uploaded.
+
+**Which systems?** Windows 10 and 11, 64-bit.
