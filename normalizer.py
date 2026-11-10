@@ -493,7 +493,7 @@ def _output_looks_valid(path: Path) -> bool:
 def normalize_file(
     input_path: Path,
     mode: str = "copy",  # "copy" keeps the original, "replace" deletes it
-    target_db: float = -1.0,
+    target_db: float = 0.0,
     tolerance_db: float = 0.5,
     output_dir: Optional[Path] = None,
     source_root: Optional[Path] = None,
@@ -528,7 +528,7 @@ def normalize_file(
         return NormalizeResult(True, input_path, action="skipped_suffix")
 
     # Clamp user-facing parameters (GUI bounds them, API callers may not).
-    target_db = _clamp_target(target_db, -60.0, 0.0, -1.0)
+    target_db = _clamp_target(target_db, -60.0, 0.0, 0.0)
     tolerance_db = _clamp_target(tolerance_db, 0.0, 12.0, 0.5)
 
     peak = measure_peak_db(input_path, cancel_event=cancel_event)

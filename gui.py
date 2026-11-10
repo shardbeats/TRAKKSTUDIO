@@ -53,7 +53,7 @@ def is_admin() -> bool:
         return False
 
 
-APP_VERSION = "1.0"
+APP_VERSION = "1.0.1"
 
 SHORTCUTS: list[tuple[str, str]] = [
     ("Ctrl+O", "Add folder"),
@@ -72,7 +72,7 @@ def tour_text() -> str:
         "Preview rename (Ctrl+R), check After, then APPLY. In-place by default.\n\n"
         "2 · CONVERTER SP-404 — pick rate (48k native), Preview actions "
         "(copy/convert/skip), START CONVERT (Space). Output: *_sp.wav.\n\n"
-        "3 · NORMALIZER peak — set Target (-1.0dB) and tolerance, "
+        "3 · NORMALIZER peak — set Target (0.0dB) and tolerance, "
         "START NORMALIZE (Space). Output: *_N.wav.\n\n"
         "Each tab is independent with its own START/Cancel. "
         "Drag & drop folders anytime (Ctrl+O). Space never fires while typing.\n\n"
@@ -723,7 +723,7 @@ class MainWindow(QMainWindow):
         g = QGroupBox("Normalizer per-file peak (standalone — FR-7)")
         v = QVBoxLayout(g)
         r = QHBoxLayout()
-        self.spinTarget = QDoubleSpinBox(); self.spinTarget.setRange(-60, 0); self.spinTarget.setValue(-1.0); self.spinTarget.setSingleStep(0.5)
+        self.spinTarget = QDoubleSpinBox(); self.spinTarget.setRange(-60, 0); self.spinTarget.setValue(0.0); self.spinTarget.setSingleStep(0.5)
         self.spinTol = QDoubleSpinBox(); self.spinTol.setRange(0, 12); self.spinTol.setValue(0.5); self.spinTol.setSingleStep(0.1)
         self.chkReplace = QCheckBox("Replace original (only next-to-source)")
         r.addWidget(QLabel("Target peak dB:")); r.addWidget(self.spinTarget)

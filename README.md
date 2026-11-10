@@ -19,7 +19,7 @@ Free and open source (MIT). Portable exe or per-user installer, no account, no t
 |---|---|---|
 | 1 · ORGANIZER rename | Creates `sp404_splice` structure (16 folders), bulk rename with Before→After preview: Clean, Replace Old→New, Whole name (=New), Prefix, Suffix `@tag` append, anti-collision Numerate, in-place by default. Leaves no extra files next to your samples | Summary in panel |
 | 2 · CONVERTER SP-404 | Batch to SP-404MK2 WAV: 48kHz (or 44.1k legacy) / 16-bit / stereo PCM; copies if already at target, resamples on Force-to-rate, skips `*_sp.wav` | `*_sp.wav` |
-| 3 · NORMALIZER peak | Each clip to its own peak (linear gain, no compression), default -1.0dB ±0.5dB skip, preserves rate/depth, skips `*_N.wav` and silence | `*_N.wav` |
+| 3 · NORMALIZER peak | Each clip to its own peak (linear gain, no compression), default 0.0dB ±0.5dB skip, preserves rate/depth, skips `*_N.wav` and silence | `*_N.wav` |
 | Shared | Pack-grouped drag&drop scan, local SQLite, Mirror/Flat/Next-to-source folder resolver, disk check, Cancel that kills ffmpeg, amber `#F5A623` theme | `library.db` |
 
 ## Requirements
@@ -61,8 +61,8 @@ python -m venv .venv
 2. (Rename only) Tab 1: pick the `sp404_splice` preset → Create structure if you need folders.
 3. (Rename only) Tab 1: Prefix/Suffix/Old/New + Whole/Numerate → Preview rename → check After → APPLY (in-place by default; tick Copy only to keep originals in another folder; confirms with a count and warns if you touch ALL with no selection).
 4. (Convert only) Tab 2: rate 48000, Force-to-rate ON → Preview actions (`copy/convert/skip`) → START CONVERT.
-5. (Normalize only) Tab 3: Target -1.0, Tol 0.5 → START NORMALIZE.
-6. Expected result: `Closed Hat (8).wav` → rename `hhat_(8).wav` → convert `hhat_(8)_sp.wav` (48k/stereo) → normalize `hhat_(8)_sp_N.wav` (-1dB). Each step is optional and shows its summary in the panel. Your folders stay clean: zero CSVs or sidecars.
+5. (Normalize only) Tab 3: Target 0.0, Tol 0.5 → START NORMALIZE.
+6. Expected result: `Closed Hat (8).wav` → rename `hhat_(8).wav` → convert `hhat_(8)_sp.wav` (48k/stereo) → normalize `hhat_(8)_sp_N.wav` (0dB). Each step is optional and shows its summary in the panel. Your folders stay clean: zero CSVs or sidecars.
 7. The local DB (`%APPDATA%/TRAKKSTUDIO/library.db`) keeps the inventory; it regenerates on every scan.
 
 ## Project structure

@@ -1,5 +1,12 @@
 # CHANGELOG — TRAKKSTUDIO
 
+## [v1.0.1] - 2026-11-10
+
+### Fixed
+- Normalizer default target changed from -1.0 dB to **0.0 dB** (maximum clean peak, no compression). GUI target range now allows 0.0 dB.
+- `normalize_file()` default `target_db` and clamp fallback are now 0.0 dB.
+- Docs/SRS updated to the new default.
+
 ## [Unreleased]
 
 ### Added

@@ -128,7 +128,7 @@ Convention: each FR states `Input / Behavior / Output / Error path`. Every `must
 ### MODULE D — TOOL NORMALIZER standalone (100% TRAKKNORMALIZER heritage)
 
 **FR-7 Per-file peak normalization (standalone)**
-- Input: files selected in the Normalizer tab (straight from disk, NOT required to pass through the Converter), `Target peak dB default -1.0`, `Skip if within default 0.5dB`.
+- Input: files selected in the Normalizer tab (straight from disk, NOT required to pass through the Converter), `Target peak dB default 0.0`, `Skip if within default 0.5dB`.
 - Behavior: MUST run standalone with its own START. MUST measure `max_volume` with `ffmpeg -i in -af volumedetect -f null -` and parse it. When `|target - measured| <= tolerance` MUST skip. Otherwise MUST apply linear `volume=+XdB` preserving rate/depth: `ffmpeg -y -i in -af volume=+XdB -c:a pcm_s16le out_N.wav` (or s24 for 24-bit input with the toggle). MUST append `_N.wav`. MUST use 2 workers.
 - Manual Convert-then-Normalize chaining: `kick.wav -> kick_sp.wav -> kick_sp_N.wav` (traceable double suffix). Normalize-only: `kick.wav -> kick_N.wav`.
 - Output: normalized files.
@@ -178,7 +178,7 @@ Convention: each FR states `Input / Behavior / Output / Error path`. Every `must
 - **Right (2x wide):** independent tabs:
 - **Tab 1 ORGANIZER:** single `sp404_splice` preset + Create, full-width vertical Prefix/Suffix/Old/New inputs, `Whole name (=New)` + `Numerate` checks, `Copy to output` default OFF (= in-place rename), `Before/After (stretch) | Error` preview table + amber `APPLY RENAME` (asks with file count) + panel summary.
 - **Tab 2 CONVERTER:** sample_rate dropdown (48k/44.1k), Force-to-rate toggle, keep-mono toggle, `copy/convert/skip` column (FR-2), own output+mode + `START CONVERT (Space)`/`Cancel` + progress + panel summary.
-- **Tab 3 NORMALIZER:** target peak (-1.0), tolerance (0.5), replace-original toggle (next-to-source only, heritage), own output+mode + `START NORMALIZE (Space)`/`Cancel` + progress + panel summary.
+- **Tab 3 NORMALIZER:** target peak (0.0), tolerance (0.5), replace-original toggle (next-to-source only, heritage), own output+mode + `START NORMALIZE (Space)`/`Cancel` + progress + panel summary.
 
 NO global START button. NO wizard forcing all 3 steps.
 
@@ -232,7 +232,7 @@ NO global START button. NO wizard forcing all 3 steps.
 
 1. Name: **TRAKKSTUDIO multitool (3 independent tabs)**.
 2. Heritage suffixes stay per tool: `_sp` Converter-only, `_N` Normalizer-only, `_@tag` Organizer-append-only. Only manual chaining combines them, e.g. `Kick_01_@producer_sp_N.wav`.
-3. Per-tab defaults: Organizer `in-place` (Copy OFF); Converter/Normalizer `Mode=Copy`, `Preserve=ON`, Converter `Force to rate=ON`, `48kHz/16-bit/stereo`, Normalizer `Target -1.0dB / Tol 0.5dB`.
+3. Per-tab defaults: Organizer `in-place` (Copy OFF); Converter/Normalizer `Mode=Copy`, `Preserve=ON`, Converter `Force to rate=ON`, `48kHz/16-bit/stereo`, Normalizer `Target 0.0dB / Tol 0.5dB`.
 4. Direct in-place rename (no extra confirm); overwrite convert/normalize only after ffprobe OK. APPLY asks with a file count.
 5. Single `sp404_splice` preset (16 paths, SP-404 + Splice merge). All other presets removed.
 6. FR-5 degraded to passive hint. No content detection in v1.

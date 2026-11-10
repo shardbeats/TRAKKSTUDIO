@@ -12,7 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 
-STABLE_VERSION = "1.0"
+STABLE_VERSION = "1.0.1"
 
 
 def _which_in(candidate: str) -> str | None:
