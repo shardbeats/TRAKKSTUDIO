@@ -4,9 +4,7 @@
 
 **[Download for Windows](https://github.com/shardbeats/TRAKKSTUDIO/releases/latest)** · **[All 6 tools](https://shardbeats.github.io/tools/)** · **[Free beat pack (WAV + stems)](https://shardbeats.github.io/landing/)**
 
-<!-- Screenshot: save the image as docs/screenshot.png, then uncomment this block
 <p align="center"><img src="docs/screenshot.png" alt="TRAKKSTUDIO organizing and converting a drum kit to SP-404MK2 WAV" width="880"></p>
--->
 
 Free and open source (MIT). Portable exe or per-user installer, no account, no telemetry — your audio never leaves your computer.
 
