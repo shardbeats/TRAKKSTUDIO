@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: GPL-3.0-only
 """TRAKKSTUDIO entry: GUI by default, CLI when flags given."""
 from __future__ import annotations
 

@@ -24,7 +24,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 EXE_DIR = ROOT / "dist" / "portable" / "TRAKKSTUDIO"
-DOCS = ("README.md", "LICENSE", "NOTICE.md", "THIRD-PARTY-NOTICES.md")
+DOCS = ("README.md", "LICENSE", "LICENSING.md", "TRADEMARK.md", "NOTICE.md", "THIRD-PARTY-NOTICES.md")
 
 
 def project_version() -> str:

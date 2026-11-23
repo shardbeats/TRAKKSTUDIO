@@ -1,5 +1,12 @@
 # CHANGELOG — TRAKKSTUDIO
 
+## [Unreleased] — Relicense to GPL-3.0-only
+- License change (not retroactive): from commit 21502e02052bf1d225de429b4a1391e378481071
+  (2026-11-23) onward the code is GPL-3.0-only (`LICENSE`, `LICENSING.md`).
+  Versions up to and including v1.0.2 (2026-11-10) remain MIT.
+- Trademark: forks must rebrand, see `TRADEMARK.md` (+ GPLv3 §7(e)).
+- About box, installer metadata, and compliance docs updated. No code changes.
+
 ## [v1.0.2] - 2026-11-10
 
 ### Changed

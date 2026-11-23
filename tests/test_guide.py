@@ -86,7 +86,7 @@ def test_tour_and_about_texts():
     assert "ORGANIZER" in t and "CONVERTER" in t and "NORMALIZER" in t
     assert "Space" in t
     a = about_text()
-    assert APP_VERSION in a and "MIT" in a
+    assert APP_VERSION in a and "GPL" in a
 
 
 def test_first_run_flag_roundtrip(tmp_path, monkeypatch):

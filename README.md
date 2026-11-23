@@ -6,7 +6,7 @@
 
 <p align="center"><img src="docs/screenshot.png" alt="TRAKKSTUDIO organizing and converting a drum kit to SP-404MK2 WAV" width="880"></p>
 
-Free and open source (MIT). Portable ZIP or per-user installer, no account, no telemetry - your audio never leaves your computer.
+Free and open source (GPL-3.0-only). Portable ZIP or per-user installer, no account, no telemetry - your audio never leaves your computer.
 
 
 `Folders/files -> Organize (rename) | Convert (SP-404 WAV) | Normalize (peak) -> Mirror output, summary in panel`
@@ -124,7 +124,7 @@ TRAKKSTUDIO/
 
 ## License
 
-See `LICENSE` (TRAKK SUITE heritage).
+See `LICENSE` + `LICENSING.md` (GPL-3.0-only; versions published before 2026-11-23 remain MIT).
 
 ## TRAKK SUITE
 
@@ -146,7 +146,7 @@ Six free, offline tools for beatmakers. They are independent: install only what 
 
 ## FAQ
 
-**Is it free?** Yes. MIT licensed, free for personal and commercial use, with no account and no usage limits.
+**Is it free?** Yes. GPL-3.0-only licensed, free for personal and commercial use, with no account and no usage limits.
 
 **Do I need Python or FFmpeg installed?** No. The portable build ships Qt and FFmpeg in its folder. You only need Python 3.10+ and FFmpeg on PATH if you run it from source.
 

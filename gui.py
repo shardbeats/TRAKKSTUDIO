@@ -89,7 +89,7 @@ def about_text() -> str:
         "Organize · Convert to SP-404MK2 WAV · Peak-normalize.\n"
         "3 independent tools, one window. No accounts, no cloud.\n"
         "\n"
-        "MIT licensed (see LICENSE + NOTICE.md + THIRD-PARTY-NOTICES.md).\n"
+        "GPL-3.0-only licensed (see LICENSE + LICENSING.md + NOTICE.md + THIRD-PARTY-NOTICES.md).\n"
         "Inventory: %APPDATA%/TRAKKSTUDIO/library.db"
     )
 
